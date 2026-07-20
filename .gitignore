@@ -1,0 +1,30 @@
+# ─────────────────────────────────────────────
+# Nội dung PERSONAL — không đẩy lên GitHub
+# Quy tắc: ignore toàn bộ file .md trong thư mục,
+# nhưng luôn giữ README.md để thư mục vẫn được push.
+# ─────────────────────────────────────────────
+
+# Giới thiệu bản thân (CV, behavioral, câu trả lời cá nhân)
+Introduce/*
+!Introduce/README.md
+
+# Transcript + đánh giá phỏng vấn thử
+MockInterview/*
+!MockInterview/README.md
+
+# Điểm nhấn kỹ thuật trích từ codebase thật của dự án
+ProjectHighlights/*
+!ProjectHighlights/README.md
+
+# Ghi chú cá nhân
+note.md
+
+# ─────────────────────────────────────────────
+# Công cụ / môi trường
+# ─────────────────────────────────────────────
+.idea/
+.vscode/
+.remember/
+.DS_Store
+Thumbs.db
+*.log
