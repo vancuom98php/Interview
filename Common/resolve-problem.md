@@ -8,13 +8,199 @@
 
 ## 📑 Mục lục
 
-1. [Queue job / cron job lỗi thì xử lý thế nào? Làm sao biết lỗi để đối ứng ngay?](#q1)
-   - 1.1. [Riêng cron job: chống chạy chồng (overlap) & phát hiện cron không chạy](#q1-1)
+1. [Khi gặp 1 bug thì debug ở backend thế nào? Các step và kiểm tra những gì?](#q1)
+2. [Queue job / cron job lỗi thì xử lý thế nào? Làm sao biết lỗi để đối ứng ngay?](#q2)
+   - 2.1. [Riêng cron job: chống chạy chồng (overlap) & phát hiện cron không chạy](#q2-1)
 
 ---
 
 <a id="q1"></a>
-## 1. Queue job / cron job lỗi thì xử lý thế nào? Làm sao biết lỗi để đối ứng ngay?
+## 1. Khi gặp 1 bug thì debug ở backend thế nào? Các step và kiểm tra những gì?
+
+### 📖 Giới thiệu kiến thức
+
+**Bối cảnh câu hỏi:** người phỏng vấn không muốn nghe "em đặt breakpoint / em `console.log`". Họ muốn xem
+bạn có **quy trình** để **thu hẹp không gian giả thuyết một cách có hệ thống**, và có phân biệt được
+**triệu chứng** với **root cause**. Cốt lõi của debug backend: backend **không có UI để nhìn**, nên mọi
+kết luận phải dựa vào **bằng chứng** (log, metric, trace, dữ liệu) — **đoán rồi sửa thử là phản pattern**.
+
+#### Step 0 — Triage trước khi debug: "đang chảy máu" hay không?
+
+Việc đầu tiên **không phải** tìm nguyên nhân mà là **đánh giá mức độ**:
+
+- **Ảnh hưởng:** bao nhiêu user / endpoint nào / có **mất hoặc sai dữ liệu** không (nặng nhất) / có rủi ro
+  bảo mật không?
+- **Thời điểm bắt đầu:** trùng với **deploy / migration / thay config / traffic tăng** nào không? Đây là
+  câu hỏi cho ra manh mối nhanh nhất trong thực tế.
+- **Nếu là sự cố production:** **cầm máu trước, điều tra sau** — rollback / tắt **feature flag** / scale
+  tạm / chuyển traffic. Nhưng phải **giữ bằng chứng trước khi restart** (dump log, snapshot, danh sách
+  process/connection), vì restart thường **xoá sạch dấu vết**.
+
+#### Step 1 — Tái hiện (reproduce) & viết rõ "expected vs actual"
+
+- Xác định **input tối thiểu** gây lỗi: request nào, payload nào, user/role nào, dữ liệu nào.
+- Ghi rõ **mong đợi gì / thực tế ra gì** — nhiều "bug" hoá ra là **hiểu sai requirement**, không phải lỗi code.
+- **Không tái hiện được?** Đừng ngồi đoán: **tăng khả năng quan sát** rồi bắt lần sau —
+  thêm **correlation/request ID**, log input + nhánh rẽ, bật sampling trace cho endpoint đó, ghi lại
+  full context khi exception (Sentry).
+
+#### Step 2 — Thu hẹp phạm vi theo tầng (chia đôi vấn đề)
+
+Backend là một chuỗi: **client → LB/Nginx → app → cache/DB → external API**. Hãy kiểm tra **ở từng biên**
+để biết lỗi nằm ở đoạn nào, thay vì đọc code từ đầu:
+
+| Kiểm tra ở biên | Cách xác định | Nếu OK ở đây thì loại trừ |
+|---|---|---|
+| Request có **tới app** không? | access log của Nginx/LB, log middleware đầu vào | vấn đề DNS/LB/CORS/firewall |
+| App có **nhận đúng dữ liệu** không? | log payload/header đã parse (không log secret) | lỗi client gửi sai, middleware chặn |
+| App có **gọi DB/cache** không, câu gì? | query log, `SHOW PROCESSLIST`, log của ORM | logic nhánh rẽ sai trước đó |
+| **External API** trả gì? | log request/response + status + thời gian | lỗi phía mình |
+| **Response ra khỏi app** có đúng không? | so response app (curl trực tiếp container) vs qua proxy | nếu khác → lỗi **proxy/cache/header** |
+
+> **Kỹ thuật xương sống:** `curl` thẳng vào app (bỏ qua LB/CDN) — nếu **thẳng thì đúng, qua proxy thì
+> sai** thì thủ phạm là proxy/cache/header, khỏi cần đọc code. Đây là bisect theo *hạ tầng*; còn nếu
+> "trước đây chạy được" thì bisect theo *thời gian* bằng **`git bisect`**.
+
+#### Step 3 — Kiểm tra những gì (checklist bằng chứng)
+
+**1. Log & stack trace**
+- Đọc stack trace **từ dưới lên**, tìm **dòng code của mình đầu tiên** (frame trên cùng thường là code
+  thư viện, không phải nguyên nhân).
+- Đọc **exception gốc** — chú ý `caused by` / inner exception; try/catch chôn lỗi (`catch {}`) là kẻ thù
+  số 1 của việc debug.
+- Dùng **correlation ID** để nối log của **cùng một request qua nhiều service** (thiếu nó thì log
+  microservice gần như vô dụng).
+
+**2. Metrics (trả lời "chậm hay lỗi, một chỗ hay toàn hệ thống")**
+- **Error rate & status code** (4xx vs 5xx: 4xx là client/validation, 5xx là phía server).
+- **Latency p95/p99** (không xem average — average che mất đuôi chậm).
+- **CPU / RAM / GC**, **connection pool** đã cạn chưa, **queue depth**, số connection DB so
+  `max_connections`.
+- Đối chiếu **timeline metric với thời điểm deploy** để xác nhận nghi vấn ở Step 0.
+
+**3. Distributed tracing (OpenTelemetry/Jaeger)** — xem **span nào ăn thời gian**; **N+1 query** hiện ra
+rất rõ (một span cha kèm hàng trăm span DB giống nhau).
+
+**4. Tầng database** (nguồn của phần lớn bug "chậm" và "sai dữ liệu")
+- **Slow query log** + **`EXPLAIN`** (xem `Backend/database-system.md` — index & execution plan).
+- **Lock/blocking:** `SHOW PROCESSLIST`, `information_schema.innodb_trx` (MySQL),
+  `pg_stat_activity` + `pg_locks` (PostgreSQL); **deadlock log** (`SHOW ENGINE INNODB STATUS`).
+- **Transaction & isolation:** thiếu transaction hoặc commit sai chỗ → dữ liệu nửa vời; đọc bẩn/lost
+  update → xem **race condition & locking**.
+- Dữ liệu **thật sự** trong DB là gì? (nhiều lúc "API trả sai" thực ra là **DB đã sai từ trước**.)
+
+**5. Cache & dữ liệu tạm** — bug "sai nhưng chỉ với một số user / F5 thì lại đúng" rất hay là **cache
+stale**, sai **cache key** (thiếu userId/locale/tenant), hoặc **cache invalidation** không chạy.
+
+**6. Config & môi trường** (thủ phạm số 1 của "local chạy được, prod thì không")
+- Biến env/secret thiếu hoặc sai; **timezone & locale**; version runtime/thư viện khác nhau; giới hạn
+  `upload_max_filesize`/body size/timeout của Nginx-PHP-FPM; quyền file; **migration chưa chạy**.
+
+**7. Dữ liệu biên & scale** — chỉ lỗi với dữ liệu thật: `NULL`, chuỗi unicode/emoji, số âm, tập rỗng,
+timezone lệch ngày, bản ghi cũ thiếu field, hoặc chỉ lỗi khi **dữ liệu đủ lớn / đồng thời đủ cao**.
+
+#### Step 4 — Đặt giả thuyết & kiểm chứng: mỗi lần đúng **một** biến
+
+Đây là bước phân biệt người có phương pháp: viết ra giả thuyết ("nghi connection pool cạn"), **dự đoán
+trước** bằng chứng sẽ thấy nếu đúng ("pool usage 100% + hàng loạt timeout xếp hàng"), rồi mới đi kiểm tra.
+Trùng khớp → tiếp tục đào; không khớp → **loại bỏ giả thuyết** và đi nhánh khác. **Không đổi 3–4 thứ cùng
+lúc**, vì khi hết lỗi bạn sẽ **không biết cái nào đã sửa** (và bug sẽ quay lại).
+
+#### Step 5 — Công cụ đào sâu (chọn theo loại bug)
+
+| Loại bug | Cách bắt |
+|---|---|
+| Logic phức tạp, tái hiện được ở local | **Debugger** step-by-step + **breakpoint có điều kiện** (Xdebug với PHP, `node --inspect` với Node) — hiệu quả hơn rắc `log` khắp nơi |
+| Chỉ xảy ra trên production | So sánh **config/data/scale**; **structured log** + sampling trace; nhân bản dữ liệu prod đã **ẩn PII** về staging |
+| **Flaky / không ổn định (heisenbug)** | Nghi **race condition**, thứ tự message, cache, thời gian/timezone → log kèm **timestamp + pid/thread + request ID**, chạy lặp lại nhiều lần, **tăng concurrency** để lỗi dễ nổ |
+| Rò rỉ bộ nhớ / chậm dần theo thời gian | RSS/heap tăng đơn điệu → **heap snapshot 2 thời điểm rồi so sánh**; kiểm tra listener/timer/connection không đóng |
+| Lỗi mạng, treo không rõ lý do | `curl -v`, `dig`, kiểm tra **SSL/timeout/keep-alive**; nặng hơn thì `netstat`/`ss`, `strace`, `tcpdump` |
+
+#### Step 6 → 8 — Fix cho đúng cách
+
+1. **Viết test tái hiện bug TRƯỚC khi sửa** (test phải **fail**) → sửa → test **pass**. Test này thành
+   **regression test**, đảm bảo bug không sống lại (xem `Common/testing.md`).
+2. **Sửa root cause, không sửa triệu chứng.** Thêm `try/catch` cho hết lỗi, tăng timeout, retry cho qua…
+   chỉ **đẩy vấn đề đi xa hơn**. Dùng **5 Whys** để đi tới nguyên nhân thật.
+3. **Quét chỗ khác cùng pattern** — bug thường không đơn độc (cùng một hàm dùng ở 5 nơi khác).
+4. **Verify & theo dõi sau deploy:** kiểm trên staging, deploy, rồi **canh metric/log 15–30 phút** —
+   chưa xem metric thì chưa gọi là xong.
+5. **Postmortem blameless:** vì sao **không phát hiện sớm hơn**? → bổ sung **alert/log/test** còn thiếu.
+   Một bug được xử lý tốt phải để lại **guardrail**, không chỉ một commit fix.
+
+```bash
+# Bộ lệnh "kiểm tra nhanh" khi có sự cố backend
+kubectl logs -f deploy/api --since=15m | grep -i 'error\|exception'   # log gần nhất
+curl -w '\ntime_total=%{time_total}\n' -o /dev/null -s http://app:3000/health  # app còn sống & nhanh?
+curl -v http://localhost:3000/api/orders/1        # gọi thẳng app, bỏ qua LB/CDN
+```
+
+```sql
+-- DB: ai đang chạy lâu / đang bị chặn?
+SHOW FULL PROCESSLIST;                                    -- MySQL: query đang chạy
+SELECT * FROM information_schema.innodb_trx ORDER BY trx_started;  -- transaction treo
+SHOW ENGINE INNODB STATUS;                                -- LATEST DETECTED DEADLOCK
+-- PostgreSQL
+SELECT pid, state, wait_event_type, now()-query_start AS dur, query
+FROM pg_stat_activity WHERE state <> 'idle' ORDER BY dur DESC;
+```
+
+```ts
+// Correlation ID: điều kiện tiên quyết để debug được hệ nhiều service
+app.use((req, res, next) => {
+  req.reqId = req.headers['x-request-id'] ?? randomUUID();
+  res.setHeader('x-request-id', req.reqId);          // trả về để user báo lỗi kèm ID
+  logger.info({ reqId: req.reqId, method: req.method, url: req.url, userId: req.user?.id });
+  next();                                            // mọi log/HTTP call sau đều mang reqId này
+});
+```
+
+#### Bảng tra nhanh: triệu chứng → nghi ngờ gì → xem ở đâu
+
+| Triệu chứng | Nghi ngờ đầu tiên | Xem ở đâu |
+|---|---|---|
+| **5xx rải rác** | exception chưa xử lý, dependency chết | error tracking + stack trace, health của downstream |
+| **504/timeout** | query chậm/lock, worker cạn, external treo | slow query log, pool usage, trace span |
+| **Chậm dần theo giờ/ngày** | memory leak, connection không đóng, thiếu index khi data lớn | metric RSS/pool, `EXPLAIN` |
+| **Dữ liệu sai/trùng** | thiếu transaction, **race condition**, job at-least-once không idempotent | log theo `reqId`, isolation level, mục 2 |
+| **Chỉ một số user bị** | dữ liệu biên, permission, feature flag, **cache key thiếu scope** | so sánh 2 user, đọc thẳng DB/cache |
+| **Ngay sau deploy** | migration, config/env, breaking change API | diff commit, `git bisect`, log lúc boot |
+| **Chỉ prod, local OK** | khác config/dữ liệu/scale, timezone | so sánh env, thử với dữ liệu prod đã ẩn PII |
+
+### 🎯 Tóm tắt trả lời phỏng vấn (STAR)
+
+- **Nguyên tắc:** debug là **thu hẹp giả thuyết bằng bằng chứng**, không phải đoán rồi sửa thử. Mục tiêu là
+  **root cause**, không phải làm hết triệu chứng.
+- **Quy trình 6 bước em thường theo:**
+  1. **Triage:** ảnh hưởng bao nhiêu user, có sai/mất dữ liệu không, **bắt đầu sau deploy/thay đổi nào**.
+     Nếu là sự cố prod → **cầm máu trước** (rollback/feature flag) nhưng **giữ log làm bằng chứng trước khi
+     restart**.
+  2. **Tái hiện:** tìm input tối thiểu, viết rõ **expected vs actual**. Không tái hiện được thì **tăng
+     observability** (correlation ID, log context, trace) để bắt lần sau.
+  3. **Thu hẹp theo tầng:** client → LB/Nginx → app → cache/DB → external. `curl` thẳng vào app để loại
+     trừ proxy; "trước chạy được" thì **`git bisect`**.
+  4. **Kiểm tra bằng chứng:** stack trace (đọc từ dưới lên, tìm dòng code của mình) → **metrics** (error
+     rate, **p95/p99**, CPU/RAM, **connection pool**, queue depth) → **trace** (span nào chậm, N+1) →
+     **DB** (slow query + `EXPLAIN`, `PROCESSLIST`, lock/deadlock, transaction) → **cache** (stale, sai
+     cache key) → **config/env** (timezone, secret, migration chưa chạy) → **dữ liệu biên**.
+  5. **Giả thuyết & kiểm chứng:** mỗi lần đổi **đúng 1 biến**, dự đoán trước bằng chứng rồi mới kiểm tra.
+  6. **Fix đúng cách:** **viết test tái hiện bug trước khi sửa** → sửa **root cause** → quét chỗ khác cùng
+     pattern → verify staging/prod và **canh metric sau deploy** → **postmortem blameless**: bổ sung
+     alert/log/test để lần sau **phát hiện sớm hơn**.
+- **Bug khó nhất là bug không ổn định (flaky):** nghi **race condition**/cache/timezone/thứ tự message →
+  log kèm timestamp + pid + request ID, chạy lặp và **tăng concurrency** cho lỗi dễ nổ.
+- **Phản pattern nên tránh:** đổi nhiều thứ một lúc; **restart cho hết lỗi** (mất bằng chứng); `try/catch`
+  chôn lỗi hoặc tăng timeout để "cho qua"; sửa xong **không xem metric**; kết luận khi chưa có bằng chứng.
+- **Kể theo STAR (khung để bạn điền case thật):** *S* — API bị 504 rải rác giờ cao điểm; *T* — tìm nguyên
+  nhân, khôi phục dịch vụ, chống tái diễn; *A* — theo p99 + trace thấy một span DB chiếm ~90% thời gian →
+  slow query log + `EXPLAIN` cho thấy **thiếu index** nên full scan, làm **connection pool cạn** → thêm
+  index + sửa **N+1**, thêm alert p99 & pool usage, viết test regression; *R* — p99 từ … còn …, hết 504
+  (_điền số liệu thật của bạn_).
+
+[↑ Mục lục](#mục-lục)
+
+<a id="q2"></a>
+## 2. Queue job / cron job lỗi thì xử lý thế nào? Làm sao biết lỗi để đối ứng ngay?
 
 ### 📖 Giới thiệu kiến thức
 
@@ -122,8 +308,8 @@ Nguyên tắc: **detect → alert → notify → respond**. Ba trụ observabili
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q1-1"></a>
-### 1.1. Riêng cron job: chống chạy chồng (overlap) & phát hiện cron không chạy
+<a id="q2-1"></a>
+### 2.1. Riêng cron job: chống chạy chồng (overlap) & phát hiện cron không chạy
 
 #### 📖 Giới thiệu kiến thức
 

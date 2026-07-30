@@ -936,7 +936,7 @@ if (ok && bcrypt.getRounds(hashFromDB) < 12) {
 - **Giới hạn 72 byte** (kế thừa từ bcrypt): mật khẩu dài hơn 72 byte UTF-8 sẽ **bị cắt âm thầm** (emoji/
   Unicode tốn nhiều byte). Nên validate bằng `bcrypt.truncates(pwd)` hoặc giới hạn độ dài đầu vào.
 - **Dùng `compare`, đừng tự so hash bằng `===`** — `compare` đã **constant-time** (chống timing attack,
-  xem [security.md câu 14](../Common/security.md#q14)); và vì mỗi hash có **salt riêng** nên cùng mật khẩu
+  xem [security.md câu 15](../Common/security.md#q15)); và vì mỗi hash có **salt riêng** nên cùng mật khẩu
   ra hash khác nhau, so chuỗi trực tiếp là **sai**.
 - **Async ≠ thread pool:** khác `node:crypto` (chạy trên **libuv thread pool**, [câu 6](#q6)), bản async
   của `bcryptjs` là **JS thuần chia nhỏ công việc qua `setImmediate`** để **nhường event loop** — vẫn trên

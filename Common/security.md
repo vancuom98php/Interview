@@ -13,36 +13,37 @@
 - [5. CSRF (Cross-Site Request Forgery) là gì?](#q5)
 - [6. CORS (Cross-Origin Resource Sharing) là gì?](#q6)
 - [7. SSRF (Server-Side Request Forgery) là gì?](#q7)
-- [8. Phân biệt authentication và authorization](#q8)
-- [9. Có mấy cách authentication (xác thực)?](#q9)
-  - [9.1. Basic Authentication là gì?](#q9-1)
-  - [9.2. Session-based Authentication là gì?](#q9-2)
-  - [9.3. Token-based Authentication là gì?](#q9-3)
-  - [9.4. Bearer token là gì?](#q9-4)
-  - [9.5. JWT gồm những phần nào? Verify thế nào?](#q9-5)
-  - [9.6. Tại sao JWT chia 3 phần mà không chỉ dùng signature?](#q9-6)
-  - [9.7. Payload của JWT thường nên chứa những gì?](#q9-7)
-  - [9.8. Phân biệt HS256, RS256 và ES256](#q9-8)
-  - [9.9. Nếu phải "pin" alg, thì header alg còn tác dụng gì?](#q9-9)
-  - [9.10. JWE là gì? Khác JWS/JWT thế nào?](#q9-10)
-  - [9.11. Access token vs Refresh token; vì sao refresh dài hơn; cách revoke token](#q9-11)
-  - [9.12. Refresh token được lưu ở server bằng cách nào?](#q9-12)
-  - [9.13. Refresh token rotation + reuse detection — mỗi lần /refresh làm gì?](#q9-13)
-  - [9.14. Cách revoke hàng loạt JWT đã phát (đổi mật khẩu, force logout)](#q9-14)
-  - [9.15. OAuth2 là gì? Flow và các thành phần chính của OAuth2](#q9-15)
-- [10. Broken Authentication / Session là gì?](#q10)
-  - [10.1. Lưu access/refresh token ở đâu trên client & truyền access token thế nào?](#q10-1)
-- [11. SSL là gì? Cách sử dụng?](#q11)
-  - [11.1. Phân biệt SSL và TLS](#q11-1)
-  - [11.2. HTTPS và HTTP khác nhau thế nào?](#q11-2)
-- [12. Sensitive Data Exposure là gì?](#q12)
-  - [12.1. Hashing và Encryption khác nhau thế nào? Cách lưu password vào DB?](#q12-1)
-  - [12.2. Cách compare (verify) password đã hash khi đăng nhập?](#q12-2)
-  - [12.3. Sử dụng salt trong hash password như thế nào?](#q12-3)
-  - [12.4. Phân biệt salt và pepper chi tiết](#q12-4)
-  - [12.5. Chặn user đặt mật khẩu mới trùng 3 mật khẩu gần nhất (password history)](#q12-5)
-- [13. Các hàm hash và mã hoá phổ biến](#q13)
-- [14. So sánh constant-time là gì? (timing attack)](#q14)
+- [8. Tấn công DDoS là gì và cách phòng chống?](#q8)
+- [9. Phân biệt authentication và authorization](#q9)
+- [10. Có mấy cách authentication (xác thực)?](#q10)
+  - [10.1. Basic Authentication là gì?](#q10-1)
+  - [10.2. Session-based Authentication là gì?](#q10-2)
+  - [10.3. Token-based Authentication là gì?](#q10-3)
+  - [10.4. Bearer token là gì?](#q10-4)
+  - [10.5. JWT gồm những phần nào? Verify thế nào?](#q10-5)
+  - [10.6. Tại sao JWT chia 3 phần mà không chỉ dùng signature?](#q10-6)
+  - [10.7. Payload của JWT thường nên chứa những gì?](#q10-7)
+  - [10.8. Phân biệt HS256, RS256 và ES256](#q10-8)
+  - [10.9. Nếu phải "pin" alg, thì header alg còn tác dụng gì?](#q10-9)
+  - [10.10. JWE là gì? Khác JWS/JWT thế nào?](#q10-10)
+  - [10.11. Access token vs Refresh token; vì sao refresh dài hơn; cách revoke token](#q10-11)
+  - [10.12. Refresh token được lưu ở server bằng cách nào?](#q10-12)
+  - [10.13. Refresh token rotation + reuse detection — mỗi lần /refresh làm gì?](#q10-13)
+  - [10.14. Cách revoke hàng loạt JWT đã phát (đổi mật khẩu, force logout)](#q10-14)
+  - [10.15. OAuth2 là gì? Flow và các thành phần chính của OAuth2](#q10-15)
+- [11. Broken Authentication / Session là gì?](#q11)
+  - [11.1. Lưu access/refresh token ở đâu trên client & truyền access token thế nào?](#q11-1)
+- [12. SSL là gì? Cách sử dụng?](#q12)
+  - [12.1. Phân biệt SSL và TLS](#q12-1)
+  - [12.2. HTTPS và HTTP khác nhau thế nào?](#q12-2)
+- [13. Sensitive Data Exposure là gì?](#q13)
+  - [13.1. Hashing và Encryption khác nhau thế nào? Cách lưu password vào DB?](#q13-1)
+  - [13.2. Cách compare (verify) password đã hash khi đăng nhập?](#q13-2)
+  - [13.3. Sử dụng salt trong hash password như thế nào?](#q13-3)
+  - [13.4. Phân biệt salt và pepper chi tiết](#q13-4)
+  - [13.5. Chặn user đặt mật khẩu mới trùng 3 mật khẩu gần nhất (password history)](#q13-5)
+- [14. Các hàm hash và mã hoá phổ biến](#q14)
+- [15. So sánh constant-time là gì? (timing attack)](#q15)
 
 ---
 
@@ -133,13 +134,13 @@ ownership, không lộ ID tuần tự nhạy cảm.
 Cơ chế đăng nhập/phiên yếu: mật khẩu yếu, brute-force không giới hạn, session token đoán được, không
 hết hạn, lộ token. **Chống:** hash mật khẩu mạnh (**bcrypt/Argon2**), **rate limit** + khoá tài khoản,
 **MFA**, session token ngẫu nhiên, xoay token sau đăng nhập, set timeout, cookie `HttpOnly`+`Secure`.
-Chi tiết xem [câu 10](#q10).
+Chi tiết xem [câu 11](#q11).
 
 #### 6. Sensitive Data Exposure
 
 Lộ dữ liệu nhạy cảm do **không mã hoá**: truyền không TLS, lưu mật khẩu plaintext, log chứa thông tin
 nhạy cảm. **Chống:** **HTTPS/TLS** bắt buộc, mã hoá dữ liệu khi lưu (at rest), không log secret, hash
-mật khẩu (không "mã hoá hai chiều"). Chi tiết xem [câu 12](#q12).
+mật khẩu (không "mã hoá hai chiều"). Chi tiết xem [câu 13](#q13).
 
 #### 7. Security Misconfiguration
 
@@ -645,7 +646,153 @@ file:///etc/passwd                                                 ← đọc fi
 [↑ Mục lục](#mục-lục)
 
 <a id="q8"></a>
-## 8. Phân biệt authentication và authorization
+## 8. Tấn công DDoS là gì và cách phòng chống?
+
+### 📖 Giới thiệu kiến thức
+
+**DoS (Denial of Service)** là tấn công làm **hệ thống ngừng phục vụ người dùng hợp lệ** — bằng cách làm
+cạn một **tài nguyên hữu hạn** nào đó: băng thông, CPU, RAM, connection pool của DB, số worker của
+PHP-FPM/Node, file descriptor... **DDoS (Distributed DoS)** là DoS nhưng phát từ **rất nhiều nguồn cùng
+lúc** (botnet gồm hàng chục nghìn máy/IoT bị chiếm — vd Mirai), nên **không thể chặn bằng cách block vài
+IP**.
+
+Khác các lỗ hổng ở [câu 2](#q2) (XSS, SQLi, CSRF...) nhắm vào **Confidentiality/Integrity** — tức *lấy*
+hoặc *sửa* dữ liệu — DDoS nhắm thẳng vào **Availability** (chữ **A** trong CIA, xem [câu 1](#q1)). Vì thế
+DDoS **không nằm trong OWASP Top 10**: nó thường không phải "lỗi code" mà là bài toán **hạ tầng + kiến
+trúc chịu tải**, tuy nhiên code tệ (endpoint nặng, không rate limit) sẽ làm ngưỡng chịu đựng thấp đi rất
+nhiều.
+
+#### Reflection & Amplification — vì sao kẻ tấn công yếu vẫn tạo được traffic khổng lồ
+
+Kẻ tấn công gửi request **giả mạo IP nguồn** (IP spoofing) thành **IP của nạn nhân** tới các server công
+khai trả lời request nhỏ bằng response lớn. Server đó "phản chiếu" (reflection) response **về nạn nhân**,
+với kích thước lớn hơn nhiều lần (amplification):
+
+| Giao thức bị lợi dụng | Hệ số khuếch đại (xấp xỉ) | Ghi chú |
+|---|---|---|
+| DNS (ANY query) | ~28–54x | phổ biến nhất |
+| NTP (`monlist`) | ~500x | lệnh cũ, nay đã tắt mặc định |
+| Memcached (UDP mở public) | tới ~51.000x | GitHub 2018: 1,35 Tbps |
+| CLDAP / SSDP / SNMP | ~50–70x | thiết bị mạng cấu hình sai |
+
+> Điểm chung: các giao thức **UDP** (không bắt tay 3 bước nên dễ giả IP nguồn) và **service phơi ra
+> Internet không cần thiết**. Đây cũng là lý do cần chặn UDP không dùng và không để Redis/Memcached
+> public.
+
+#### Phân loại theo tầng (rất hay được hỏi)
+
+**a) Tầng 3/4 — Volumetric & Protocol attack** (đo bằng **Gbps / packet-per-second**)
+
+- **UDP flood / ICMP flood / amplification**: làm **nghẽn băng thông** đường vào. Ứng dụng còn sống nhưng
+  không ai vào được.
+- **SYN flood**: gửi rất nhiều gói `SYN` rồi **không gửi `ACK`** → server giữ hàng loạt kết nối
+  *half-open* trong **SYN backlog** đến khi đầy, connection hợp lệ bị từ chối. Chống bằng **SYN cookies**
+  (server không giữ state, mã hoá thông tin vào seq number).
+
+**b) Tầng 7 — Application attack** (đo bằng **request-per-second**)
+
+- **HTTP flood**: request "trông như thật" (GET trang chủ, POST `/login`, `/search?q=...`). Nguy hiểm vì
+  chỉ vài trăm Mbps traffic đã có thể hạ app nếu mỗi request tốn nhiều CPU/DB query. **Khó phân biệt với
+  người thật** → không thể chặn thuần bằng ngưỡng băng thông.
+- **Slowloris / Slow POST (RUDY)**: mở nhiều connection rồi **gửi header/body cực chậm, nhỏ giọt** để giữ
+  connection sống → **chiếm hết worker/connection slot** với traffic gần như bằng 0. Chống bằng
+  **timeout header/body** và reverse proxy dạng event-driven (Nginx) đứng trước app.
+- **Asymmetric / expensive-query attack**: nhắm endpoint đắt — full-text search không index, export
+  Excel, resize ảnh, report tổng hợp, **GraphQL query lồng sâu**, regex bị **ReDoS**. 1 request của kẻ
+  tấn công = hàng giây CPU của bạn.
+- **HTTP/2 Rapid Reset** (CVE-2023-44487): lợi dụng multiplexing — mở stream rồi `RST_STREAM` ngay, lặp
+  liên tục → server xử lý hàng trăm triệu rps với rất ít băng thông.
+
+**c) Economic DoS (bill shock)** — hệ thống **không sập** nhờ autoscaling, nhưng hoá đơn cloud/API bên thứ
+ba (SMS, OTP, LLM token) **tăng vọt**. Vì vậy vẫn phải đặt **budget cap + quota**, và rate limit các
+endpoint gọi dịch vụ trả phí.
+
+#### Dấu hiệu nhận biết (phân biệt với "traffic tăng thật")
+
+- Traffic tăng dốc đứng nhưng **phân bố bất thường**: dồn vào 1–2 endpoint, User-Agent/geo/ASN lạ,
+  **không có hành vi duyệt tiếp** (bounce 100%), tỉ lệ **request không cache** cao bất thường.
+- Số **connection đang mở** và **thời gian sống connection** tăng, dù rps không tăng → nghi Slowloris.
+- Latency p99 + tỉ lệ 5xx/timeout tăng, DB `Threads_connected` sát `max_connections`.
+- Traffic thật (flash crowd, chạy campaign) thường **có referrer hợp lý, dùng nhiều endpoint, hit cache
+  tốt** và tăng theo hình dạng chiến dịch.
+
+#### Cách phòng chống — phòng thủ nhiều lớp (defense in depth)
+
+Nguyên tắc: **chặn càng xa hệ thống càng tốt**. Traffic đã tới được server nghĩa là bạn đã trả giá băng
+thông và CPU cho nó.
+
+| Lớp | Biện pháp |
+|---|---|
+| **Edge / CDN & Anti-DDoS** | Đặt **CDN + scrubbing center** trước origin (Cloudflare, AWS Shield + CloudFront, Akamai). **Anycast** phân tán tải ra hàng trăm PoP để "hấp thụ" volumetric. **Che IP origin** — firewall origin chỉ chấp nhận IP của CDN, nếu không kẻ tấn công bypass CDN đánh trực tiếp. |
+| **Mạng / ISP** | Nhờ ISP **rate limit / blackhole (RTBH)** hoặc BGP FlowSpec; chặn UDP port không dùng; bật **SYN cookies**, tinh chỉnh `somaxconn`/backlog; **uRPF** để chống spoofing. |
+| **WAF & Bot management** | Rate limit theo **IP / user / API key / endpoint** (token bucket, sliding window); **JS challenge / CAPTCHA / Proof-of-Work** cho traffic đáng ngờ; chặn theo ASN, fingerprint bot; ưu tiên **allowlist** cho đối tác. |
+| **Reverse proxy / app server** | Giới hạn **connection per IP**, `client_body_timeout`/`header_timeout` (chống Slowloris), **max body size**, `keepalive_timeout` hợp lý. |
+| **Ứng dụng** | **Cache mạnh** (CDN cache, Redis) để request không xuống DB; **timeout + circuit breaker** cho mọi call ra ngoài; bắt buộc **pagination/limit**, giới hạn **depth & complexity của GraphQL**; đẩy việc nặng sang **queue**; graceful degradation (tắt tính năng nặng, trả nội dung tĩnh khi quá tải); tránh ReDoS. |
+| **Vận hành** | Monitoring + alert theo rps/5xx/latency/connection; **autoscaling có trần**; runbook sẵn (bật "under attack mode", số hotline ISP/nhà cung cấp); tách hạ tầng để 1 dịch vụ sập không kéo cả hệ thống. |
+
+Ví dụ rate limit & chống Slowloris ở Nginx:
+
+```nginx
+# Bucket theo IP: 10 req/s, cho phép dồn 20 req rồi mới trả 429
+limit_req_zone  $binary_remote_addr zone=perip:10m rate=10r/s;
+limit_conn_zone $binary_remote_addr zone=conn_perip:10m;
+
+server {
+    # Cắt connection gửi header/body nhỏ giọt (Slowloris / slow POST)
+    client_header_timeout 10s;
+    client_body_timeout   10s;
+    send_timeout          10s;
+    client_max_body_size  10m;
+
+    location /api/ {
+        limit_req      zone=perip burst=20 nodelay;
+        limit_conn     conn_perip 20;       # tối đa 20 connection đồng thời/IP
+        limit_req_status 429;
+        proxy_pass http://app_upstream;
+    }
+}
+```
+
+> ⚠️ Nếu app đứng sau CDN/load balancer, `$binary_remote_addr` sẽ là IP của proxy. Phải cấu hình
+> `real_ip_header X-Forwarded-For` + `set_real_ip_from <dải IP proxy tin cậy>`, nếu không **rate limit
+> gộp toàn bộ user vào một bucket** (và ngược lại, tin `X-Forwarded-For` từ nguồn không tin cậy thì kẻ
+> tấn công tự bơm header để né rate limit).
+
+#### Những sai lầm thường gặp
+
+- **Chỉ rate limit ở tầng application**: request đã tiêu tốn CPU/băng thông của bạn rồi. Rate limit là để
+  chống abuse/brute force ([câu 11](#q11)) hơn là chống volumetric DDoS.
+- **Chặn theo IP đơn lẻ**: IP có thể bị **spoof** (L3/4) hoặc đến từ botnet hàng chục nghìn IP; block cả
+  dải còn dễ chặn oan user sau NAT/CGNAT.
+- **Dùng CDN nhưng để lộ IP origin** (qua DNS record cũ, mail server, subdomain staging) → bypass hoàn
+  toàn lớp bảo vệ.
+- **Autoscale không giới hạn** → không sập nhưng "chết vì hoá đơn"; hoặc app scale còn **DB thì không**,
+  cổ chai chỉ dịch sang DB.
+
+### 🎯 Tóm tắt trả lời phỏng vấn
+
+- **DoS** = làm cạn tài nguyên để hệ thống không phục vụ được người dùng hợp lệ; **DDoS** = phát từ
+  **botnet nhiều nguồn** nên không chặn được bằng vài IP. Đây là tấn công vào **Availability** trong CIA,
+  không phải lỗi code như XSS/SQLi.
+- **Hai nhóm chính:** **L3/L4 volumetric** (UDP/ICMP flood, **amplification** DNS/NTP/memcached với IP
+  spoofing, **SYN flood** làm đầy backlog) — đo bằng Gbps; và **L7 application** (**HTTP flood**,
+  **Slowloris/slow POST** giữ connection, endpoint đắt như search/export/GraphQL sâu, **HTTP/2 Rapid
+  Reset**) — đo bằng rps, ít traffic nhưng vẫn hạ được app.
+- **Nguyên tắc phòng chống: chặn càng xa càng tốt, phòng thủ nhiều lớp:**
+  1. **Edge**: CDN + anti-DDoS/scrubbing + anycast, **firewall origin chỉ nhận IP CDN** (che IP origin).
+  2. **Network/ISP**: blackhole/FlowSpec, **SYN cookies**, chặn UDP không dùng.
+  3. **WAF + rate limit** theo IP/user/endpoint, JS challenge/CAPTCHA, bot management.
+  4. **Proxy/app**: timeout header-body chống Slowloris, limit connection & body size.
+  5. **Ứng dụng**: cache mạnh, queue việc nặng, timeout + circuit breaker, giới hạn pagination/GraphQL
+     complexity, graceful degradation.
+  6. **Vận hành**: monitoring/alert, autoscaling **có trần chi phí**, runbook + liên hệ ISP.
+- **Bẫy hay gặp:** chỉ rate limit ở app (traffic đã vào rồi), block IP đơn lẻ khi IP bị spoof, dùng CDN
+  nhưng lộ IP origin, autoscale không trần → **economic DoS** (sập vì hoá đơn thay vì sập vì tải).
+
+[↑ Mục lục](#mục-lục)
+
+<a id="q9"></a>
+## 9. Phân biệt authentication và authorization
 
 ### 📖 Giới thiệu kiến thức
 
@@ -654,7 +801,7 @@ ra ở **hai bước khác nhau** trong luồng bảo mật:
 
 - **Authentication (AuthN) — "Bạn là ai?"**: **xác minh danh tính**. Người dùng chứng minh mình đúng là
   người họ nói (nhập mật khẩu, OTP, token, vân tay...). Kết quả: hệ thống *tin* bạn là ai. Các cơ chế
-  authentication xem [câu 9](#q9).
+  authentication xem [câu 10](#q10).
 - **Authorization (AuthZ) — "Bạn được phép làm gì?"**: sau khi biết bạn là ai, **kiểm tra quyền** truy
   cập tài nguyên/hành động (đọc file này? xoá user kia? vào trang admin?).
 
@@ -677,7 +824,7 @@ Là nhân viên hợp lệ (đã authenticated) **không** đồng nghĩa đư�
 
 #### Trong ứng dụng web
 
-- **AuthN**: login → server cấp **session/JWT** đại diện danh tính (xem [câu 9](#q9)).
+- **AuthN**: login → server cấp **session/JWT** đại diện danh tính (xem [câu 10](#q10)).
 - **AuthZ**: mỗi request tới tài nguyên nhạy cảm, server kiểm **role/permission** (RBAC), thuộc tính
   (ABAC), hoặc **ownership** (bản ghi này có thuộc về bạn không).
 
@@ -711,7 +858,7 @@ if (! $user->can('delete', $post)) {
 | Người dùng | Chủ động cung cấp & biết | Do hệ thống quyết, thường ẩn với user |
 | HTTP lỗi | **401** Unauthorized | **403** Forbidden |
 | Cơ chế | Password, JWT, OAuth, MFA... | RBAC, ABAC, ACL, ownership check |
-| Lỗ hổng | **Broken Authentication** ([câu 10](#q10)) | **Broken Access Control / IDOR** ([câu 2](#q2)) |
+| Lỗ hổng | **Broken Authentication** ([câu 11](#q11)) | **Broken Access Control / IDOR** ([câu 2](#q2)) |
 
 > Trong mô hình **AAA** (Authentication, Authorization, Accounting), đây là hai chữ "A" đầu; chữ thứ ba
 > **Accounting** = ghi log/theo dõi những gì người dùng đã làm.
@@ -725,18 +872,18 @@ if (! $user->can('delete', $post)) {
   Là nhân viên hợp lệ không có nghĩa vào được mọi phòng.
 - **401 vs 403 (hay hỏi):** **401** = chưa xác thực (chưa biết bạn là ai); **403** = đã xác thực nhưng
   **không đủ quyền**.
-- **Lỗ hổng tương ứng:** authN yếu → **Broken Authentication** ([câu 10](#q10)); authZ yếu → **Broken
+- **Lỗ hổng tương ứng:** authN yếu → **Broken Authentication** ([câu 11](#q11)); authZ yếu → **Broken
   Access Control / IDOR** ([câu 2](#q2)). Cơ chế authZ điển hình: **RBAC/ABAC**, kiểm tra ownership server-side.
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q9"></a>
-## 9. Có mấy cách authentication (xác thực)?
+<a id="q10"></a>
+## 10. Có mấy cách authentication (xác thực)?
 
 ### 📖 Giới thiệu kiến thức
 
 **Authentication (xác thực)** trả lời câu hỏi **"bạn là ai?"** — xác minh danh tính người/hệ thống
-trước khi cho truy cập. (Khác **Authorization** = "bạn được phép làm gì?" — phân quyền, xem [câu 8](#q8).)
+trước khi cho truy cập. (Khác **Authorization** = "bạn được phép làm gì?" — phân quyền, xem [câu 9](#q9).)
 
 #### Phân loại theo yếu tố xác thực (authentication factors)
 
@@ -761,7 +908,7 @@ trước khi cho truy cập. (Khác **Authorization** = "bạn được phép l�
 3. **Token-based (JWT) — *stateless***. Sau login, server cấp **JWT** ký số (`header.payload.signature`).
    Client lưu và gửi qua header **`Authorization: Bearer <token>`**. Server chỉ **verify chữ ký**, không
    cần lưu state → **scale tốt**, hợp mobile/microservice/cross-domain. Nhược: **khó thu hồi trước hạn**
-   (dùng short TTL + refresh token, hoặc blacklist). Lưu token ở đâu: xem [câu 10.1](#q10-1).
+   (dùng short TTL + refresh token, hoặc blacklist). Lưu token ở đâu: xem [câu 11.1](#q11-1).
 
    ```http
    Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
@@ -807,12 +954,12 @@ trước khi cho truy cập. (Khác **Authorization** = "bạn được phép l�
   dính CSRF**; JWT stateless + header `Bearer` → **scale tốt nhưng khó thu hồi & rủi ro XSS-storage**.
 - Chốt: chọn cơ chế theo bối cảnh (web truyền thống → **session**; API/mobile/microservice → **token/
   OAuth**), luôn **HTTPS**, thêm **MFA** cho tài khoản quan trọng. Cơ chế yếu → sinh lỗ hổng **Broken
-  Authentication** (xem [câu 10](#q10)).
+  Authentication** (xem [câu 11](#q11)).
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q9-1"></a>
-### 9.1. Basic Authentication là gì?
+<a id="q10-1"></a>
+### 10.1. Basic Authentication là gì?
 
 #### 📖 Giới thiệu kiến thức
 
@@ -854,8 +1001,8 @@ Authorization: Basic Y3VvbTpzZWNyZXQ=      # base64("cuom:secret")
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q9-2"></a>
-### 9.2. Session-based Authentication là gì?
+<a id="q10-2"></a>
+### 10.2. Session-based Authentication là gì?
 
 #### 📖 Giới thiệu kiến thức
 
@@ -895,8 +1042,8 @@ phiên**, client chỉ cầm một **session id** để tham chiếu. (Chi tiế
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q9-3"></a>
-### 9.3. Token-based Authentication là gì?
+<a id="q10-3"></a>
+### 10.3. Token-based Authentication là gì?
 
 #### 📖 Giới thiệu kiến thức
 
@@ -915,8 +1062,8 @@ token** là biết user — **không cần lưu phiên** ở server.
 6. Token hết hạn → dùng refresh token lấy token mới
 ```
 
-- Token gửi dạng **bearer token** qua header `Authorization: Bearer` ([câu 9.4](#q9-4)); thường là **JWT**
-  ([câu 9.5](#q9-5)); quản lý vòng đời bằng **access + refresh token** ([câu 9.11](#q9-11)).
+- Token gửi dạng **bearer token** qua header `Authorization: Bearer` ([câu 10.4](#q10-4)); thường là **JWT**
+  ([câu 10.5](#q10-5)); quản lý vòng đời bằng **access + refresh token** ([câu 10.11](#q10-11)).
 
 **Ưu điểm:**
 - **Stateless → scale ngang dễ** (không cần shared session store); hợp **SPA, mobile, microservice,
@@ -925,9 +1072,9 @@ token** là biết user — **không cần lưu phiên** ở server.
 
 **Nhược điểm:**
 - **Khó thu hồi trước hạn** (token còn hạn là còn dùng được) → cần **short TTL + refresh**, hoặc
-  **blacklist** ([câu 9.11](#q9-11)).
+  **blacklist** ([câu 10.11](#q10-11)).
 - Payload JWT **đọc được** (đừng để secret); token **lớn hơn** session id (gửi mỗi request).
-- Lưu ở `localStorage` thì **rủi ro XSS** ([câu 3](#q3)) → cân nhắc nơi lưu ([câu 10.1](#q10-1)).
+- Lưu ở `localStorage` thì **rủi ro XSS** ([câu 3](#q3)) → cân nhắc nơi lưu ([câu 11.1](#q11-1)).
 
 #### 🎯 Tóm tắt trả lời phỏng vấn
 
@@ -942,8 +1089,8 @@ token** là biết user — **không cần lưu phiên** ở server.
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q9-4"></a>
-### 9.4. Bearer token là gì?
+<a id="q10-4"></a>
+### 10.4. Bearer token là gì?
 
 #### 📖 Giới thiệu kiến thức
 
@@ -964,16 +1111,16 @@ GET /api/me HTTP/1.1
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
-- Token có thể là **JWT** (tự chứa, verify bằng chữ ký — xem [câu 9.5](#q9-5)) **hoặc opaque** (chuỗi
+- Token có thể là **JWT** (tự chứa, verify bằng chữ ký — xem [câu 10.5](#q10-5)) **hoặc opaque** (chuỗi
   ngẫu nhiên, server tra store để biết là ai).
-- **Access token** trong OAuth2 mặc định là **bearer token** (xem [câu 9.15](#q9-15)).
+- **Access token** trong OAuth2 mặc định là **bearer token** (xem [câu 10.15](#q10-15)).
 
 #### Vì "ai cầm cũng dùng được" → phải bảo vệ kỹ
 
 - **Bắt buộc HTTPS/TLS** — nếu không, token bị **sniff** trên đường truyền là dùng được ngay.
-- **Thời hạn ngắn** (access token ngắn hạn + refresh) → giảm thiệt hại khi lộ (xem [câu 9.11](#q9-11)).
+- **Thời hạn ngắn** (access token ngắn hạn + refresh) → giảm thiệt hại khi lộ (xem [câu 10.11](#q10-11)).
 - **Lưu an toàn ở client** — tránh `localStorage` nếu lo **XSS**; ưu tiên in-memory / cookie `HttpOnly`
-  (xem [câu 10.1](#q10-1)).
+  (xem [câu 11.1](#q11-1)).
 - **KHÔNG đặt token trên URL/query** — bị ghi vào **log, history, header `Referer`** → rò rỉ.
 
 #### 🎯 Tóm tắt trả lời phỏng vấn
@@ -988,15 +1135,15 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q9-5"></a>
-### 9.5. JWT gồm những phần nào? Verify thế nào?
+<a id="q10-5"></a>
+### 10.5. JWT gồm những phần nào? Verify thế nào?
 
 #### 📖 Giới thiệu kiến thức
 
 **JWT (JSON Web Token)** là một chuẩn (RFC 7519) để đóng gói thông tin (**claims**) thành một token
 **gọn, tự chứa (self-contained)** và **ký số** để chống giả mạo. Nhờ *tự chứa*, server chỉ cần **verify
 chữ ký** là biết token hợp lệ — **không cần tra database/session** → nền tảng của **authentication
-stateless** (xem cơ chế token ở [câu 9](#q9)).
+stateless** (xem cơ chế token ở [câu 10](#q10)).
 
 #### Cấu trúc: 3 phần, ngăn bởi dấu chấm
 
@@ -1037,7 +1184,7 @@ Chỉ đổi 1 ký tự ở header/payload → chữ ký không khớp → token
 
 1. **Tách** token thành 3 phần theo dấu `.`.
 2. **Tự tính lại chữ ký** của `header.payload` bằng khoá server giữ, rồi **so khớp** với signature trong
-   token (so sánh **constant-time** để tránh timing attack — xem [câu 14](#q14)). Khớp → token **chưa bị sửa** & do đúng bên
+   token (so sánh **constant-time** để tránh timing attack — xem [câu 15](#q15)). Khớp → token **chưa bị sửa** & do đúng bên
    phát hành ký.
 3. **Kiểm tra claims:** `exp` (chưa hết hạn), `nbf`/`iat` hợp lệ, `iss`/`aud` đúng kỳ vọng.
 
@@ -1067,7 +1214,7 @@ $decoded = JWT::decode($token, new Key($secret, 'HS256'));  // luôn CHỈ ĐỊ
   HMAC**. Chống bằng cách **luôn chỉ định (pin) alg mong đợi** ở phía verify, không tin `alg` trong token.
 - **Không thu hồi được trước hạn:** JWT hợp lệ tới khi `exp`. Giảm thiểu bằng **access token ngắn hạn +
   refresh token**, hoặc **blacklist/denylist** theo `jti`.
-- **Lưu token an toàn** ở client: xem [câu 10.1](#q10-1) (in-memory / cookie `HttpOnly`), rủi ro **XSS**
+- **Lưu token an toàn** ở client: xem [câu 11.1](#q11-1) (in-memory / cookie `HttpOnly`), rủi ro **XSS**
   ([câu 3](#q3)).
 
 #### 🎯 Tóm tắt trả lời phỏng vấn
@@ -1085,18 +1232,18 @@ $decoded = JWT::decode($token, new Key($secret, 'HS256'));  // luôn CHỈ ĐỊ
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q9-6"></a>
-### 9.6. Tại sao JWT chia 3 phần mà không chỉ dùng signature?
+<a id="q10-6"></a>
+### 10.6. Tại sao JWT chia 3 phần mà không chỉ dùng signature?
 
 #### 📖 Giới thiệu kiến thức
 
 Câu hỏi ngầm giả định "signature là đủ", nhưng **signature một mình vô nghĩa**. Nhớ lại cấu trúc
-`Header.Payload.Signature` ([câu 9.5](#q9-5)), **mỗi phần một vai trò không thể thiếu:**
+`Header.Payload.Signature` ([câu 10.5](#q10-5)), **mỗi phần một vai trò không thể thiếu:**
 
 - **Payload** — chở **claims** (bạn là ai, quyền gì, `exp`...). **Đây mới là thông tin** JWT muốn truyền.
   Bỏ payload → token **rỗng**, server không biết là ai → phải **tra DB lại** → **mất tính self-contained
   (stateless)** — vốn là lý do dùng JWT.
-- **Header** — khai báo **cách verify**: thuật toán `alg` (HS256/RS256 — [câu 9.8](#q9-8)) và `kid` (chọn
+- **Header** — khai báo **cách verify**: thuật toán `alg` (HS256/RS256 — [câu 10.8](#q10-8)) và `kid` (chọn
   đúng khoá khi có nhiều khoá/JWKS). Không có header → verifier **không biết kiểm chữ ký bằng cách nào**.
 - **Signature** — **con dấu chống giả mạo** cho **header + payload**. Nó *bảo vệ* nội dung chứ **không
   chứa** nội dung.
@@ -1135,13 +1282,13 @@ kia**, không phải dữ liệu độc lập. Hệ quả:
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q9-7"></a>
-### 9.7. Payload của JWT thường nên chứa những gì?
+<a id="q10-7"></a>
+### 10.7. Payload của JWT thường nên chứa những gì?
 
 #### 📖 Giới thiệu kiến thức
 
-Vì **payload chỉ Base64, ai cũng đọc được** và **token gửi kèm mỗi request** (xem [câu 9.5](#q9-5),
-[câu 9.6](#q9-6)), nguyên tắc chọn nội dung payload là: **đủ để xác thực & phân quyền stateless**,
+Vì **payload chỉ Base64, ai cũng đọc được** và **token gửi kèm mỗi request** (xem [câu 10.5](#q10-5),
+[câu 10.6](#q10-6)), nguyên tắc chọn nội dung payload là: **đủ để xác thực & phân quyền stateless**,
 **nhỏ gọn**, và **không chứa bí mật**.
 
 #### NÊN chứa
@@ -1152,7 +1299,7 @@ Vì **payload chỉ Base64, ai cũng đọc được** và **token gửi kèm m�
 - **`aud`** — audience: **token dành cho service/API nào** (verifier kiểm để không nhận token của hệ khác).
 - **`exp`** — expiration: **thời điểm hết hạn** (gần như **bắt buộc** — token phải có vòng đời).
 - **`iat`** — issued at; **`nbf`** — not before (chưa hiệu lực trước mốc này).
-- **`jti`** — JWT id: mã duy nhất → phục vụ **revoke / chống replay** (xem [câu 9.11](#q9-11)).
+- **`jti`** — JWT id: mã duy nhất → phục vụ **revoke / chống replay** (xem [câu 10.11](#q10-11)).
 
 **Custom claims — thông tin định danh & phân quyền *tối thiểu*:**
 - `role` / `scope` / `permissions` — để **authorize nhanh** ngay tại verifier, không cần query DB.
@@ -1174,8 +1321,8 @@ Vì **payload chỉ Base64, ai cũng đọc được** và **token gửi kèm m�
 #### KHÔNG nên chứa
 
 - **Dữ liệu nhạy cảm / bí mật:** mật khẩu, password hash, số thẻ, PII nhạy cảm, secret, API key —
-  vì payload **đọc được** (chỉ Base64). Muốn giấu thì phải **JWE** ([câu 9.10](#q9-10)); liên hệ
-  [câu 12](#q12).
+  vì payload **đọc được** (chỉ Base64). Muốn giấu thì phải **JWE** ([câu 10.10](#q10-10)); liên hệ
+  [câu 13](#q13).
 - **Dữ liệu lớn:** payload to → token to → tốn băng thông vì gửi **mỗi request**.
 - **Dữ liệu hay đổi / cần realtime:** token **bất biến tới khi hết hạn** → nếu nhét `role`, trạng thái
   ban/khoá... rồi đổi ở DB, **token cũ vẫn mang giá trị cũ (stale)**. Thông tin cần cập nhật tức thì phải
@@ -1195,13 +1342,13 @@ Vì **payload chỉ Base64, ai cũng đọc được** và **token gửi kèm m�
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q9-8"></a>
-### 9.8. Phân biệt HS256, RS256 và ES256
+<a id="q10-8"></a>
+### 10.8. Phân biệt HS256, RS256 và ES256
 
 #### 📖 Giới thiệu kiến thức
 
 Cả ba đều là **thuật toán ký JWT** (khai báo ở claim `alg` trong header) và **đều băm bằng SHA-256** —
-khác nhau ở **cách ký/verify** (xem cấu trúc & verify JWT ở [câu 9.5](#q9-5)):
+khác nhau ở **cách ký/verify** (xem cấu trúc & verify JWT ở [câu 10.5](#q10-5)):
 
 - **HS256 = HMAC + SHA-256 (đối xứng — symmetric).** Dùng **một secret key duy nhất** cho **cả ký lẫn
   verify**. Ai có secret thì vừa tạo được token vừa kiểm tra được.
@@ -1319,7 +1466,7 @@ const payload = jwt.verify(token, ecPublicKey, { algorithms: ['ES256'] });
 
 Nếu server **không cố định (pin) `alg` mong đợi**, kẻ tấn công đổi `alg` từ RS256 sang **HS256** rồi dùng
 **public key (vốn công khai) làm secret HMAC** để ký → **giả mạo token**. → **Luôn chỉ định thuật toán
-mong đợi** ở phía verify, không tin `alg` trong token (xem [câu 9.5](#q9-5)).
+mong đợi** ở phía verify, không tin `alg` trong token (xem [câu 10.5](#q10-5)).
 
 #### 🎯 Tóm tắt trả lời phỏng vấn
 
@@ -1335,14 +1482,14 @@ mong đợi** ở phía verify, không tin `alg` trong token (xem [câu 9.5](#q9
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q9-9"></a>
-### 9.9. Nếu phải "pin" alg, thì header `alg` của JWT còn tác dụng gì?
+<a id="q10-9"></a>
+### 10.9. Nếu phải "pin" alg, thì header `alg` của JWT còn tác dụng gì?
 
 #### 📖 Giới thiệu kiến thức
 
 Câu hỏi ẩn một **hiểu lầm cần đính chính**: **"pin alg" KHÔNG có nghĩa là bỏ qua/xoá header `alg`.**
 Pin nghĩa là **chỉ chấp nhận `alg` nằm trong danh sách cho phép (allowlist)** mà server tự định — chứ
-verifier **vẫn đọc** header để biết *dùng thuật toán & khoá nào* mà kiểm chữ ký ([câu 9.5](#q9-5)).
+verifier **vẫn đọc** header để biết *dùng thuật toán & khoá nào* mà kiểm chữ ký ([câu 10.5](#q10-5)).
 
 > "Pin" = "đừng để **token tự quyết** thuật toán" — không phải "đừng đọc header".
 
@@ -1363,7 +1510,7 @@ verifier **vẫn đọc** header để biết *dùng thuật toán & khoá nào*
 Lỗ hổng **KHÔNG do sự tồn tại của header**, mà do **tin `alg` một cách mù quáng** — verifier chấp nhận
 *bất kỳ* `alg` nào token khai, kể cả:
 - **`alg: none`** → bỏ hoàn toàn chữ ký.
-- **Đổi `RS256` → `HS256`** → algorithm confusion ([câu 9.8](#q9-8)).
+- **Đổi `RS256` → `HS256`** → algorithm confusion ([câu 10.8](#q10-8)).
 
 Header vốn **trung tính** (chỉ là metadata); cái sai là verifier **không giới hạn** các giá trị chấp nhận.
 
@@ -1406,15 +1553,15 @@ cũng chỉ chấp nhận RS256). Nhưng nó **vẫn không thừa**, vì:
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q9-10"></a>
-### 9.10. JWE là gì? Khác JWS/JWT thế nào?
+<a id="q10-10"></a>
+### 10.10. JWE là gì? Khác JWS/JWT thế nào?
 
 #### 📖 Giới thiệu kiến thức
 
 **JWE (JSON Web Encryption)** (RFC 7516) là chuẩn để **MÃ HOÁ** nội dung một token → đảm bảo **bí mật
 (confidentiality)**: bên thứ ba chặn được token cũng **không đọc được** payload. Đây là câu trả lời cho
 "muốn giấu dữ liệu trong token thì làm sao" — vì **JWT thường (JWS) chỉ *ký*, không *mã hoá*** (payload
-chỉ Base64, ai cũng đọc — xem [câu 9.5](#q9-5), [câu 9.6](#q9-6)).
+chỉ Base64, ai cũng đọc — xem [câu 10.5](#q10-5), [câu 10.6](#q10-6)).
 
 > Bộ chuẩn **JOSE** có 2 nhánh: **JWS** (JSON Web Signature — *ký*, đảm bảo **toàn vẹn**) và **JWE**
 > (*mã hoá*, đảm bảo **bí mật**). Khi nói "JWT" hầu như luôn ngầm là **JWS**.
@@ -1448,7 +1595,7 @@ rồi **CEK** (đối xứng, vd `enc = A256GCM`) **mã hoá payload**. → vừ
 - Dùng **JWE** khi token **chứa dữ liệu nhạy cảm** không muốn client / bên trung gian đọc (PII, claim nội bộ).
 - **Nested JWT**: **ký trước (JWS) rồi mã hoá (JWE)** → vừa **xác thực nguồn** vừa **giấu nội dung**.
 - Thực tế **đa số hệ thống dùng JWS** + **HTTPS** + **không để secret trong payload** (đơn giản, đủ dùng);
-  chỉ dùng JWE khi thật sự cần **giấu payload đầu-cuối** (liên hệ [câu 12](#q12)).
+  chỉ dùng JWE khi thật sự cần **giấu payload đầu-cuối** (liên hệ [câu 13](#q13)).
 
 #### 🎯 Tóm tắt trả lời phỏng vấn
 
@@ -1462,12 +1609,12 @@ rồi **CEK** (đối xứng, vd `enc = A256GCM`) **mã hoá payload**. → vừ
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q9-11"></a>
-### 9.11. Access token vs Refresh token khác nhau thế nào? Vì sao refresh dài hơn? Cách revoke token?
+<a id="q10-11"></a>
+### 10.11. Access token vs Refresh token khác nhau thế nào? Vì sao refresh dài hơn? Cách revoke token?
 
 #### 📖 Giới thiệu kiến thức
 
-Trong mô hình token-based (JWT — xem [câu 9.5](#q9-5)), server thường cấp **hai** token có vai trò khác
+Trong mô hình token-based (JWT — xem [câu 10.5](#q10-5)), server thường cấp **hai** token có vai trò khác
 nhau để cân bằng **bảo mật** và **trải nghiệm (UX)**.
 
 #### Access token vs Refresh token
@@ -1478,7 +1625,7 @@ nhau để cân bằng **bảo mật** và **trải nghiệm (UX)**.
 | Thời hạn | **Ngắn** (5–15 phút) | **Dài** (ngày/tuần/tháng) |
 | Gửi khi nào | **Mọi request** tới Resource Server (`Bearer`) | **Chỉ** khi gọi endpoint `/refresh` |
 | Bề mặt lộ | **Cao** (đi khắp nơi) | **Thấp** (1 endpoint, tần suất thấp) |
-| Lưu ở đâu | In-memory (client) | Cookie `HttpOnly`+`Secure` ([câu 10.1](#q10-1)) |
+| Lưu ở đâu | In-memory (client) | Cookie `HttpOnly`+`Secure` ([câu 11.1](#q11-1)) |
 | Thu hồi | Khó (stateless) → để ngắn hạn | Dễ hơn (thường lưu server → revoke được) |
 
 #### Vì sao refresh token lại dài hạn hơn?
@@ -1540,13 +1687,13 @@ hợp lệ tới khi `exp`. Các chiến lược thu hồi:
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q9-12"></a>
-### 9.12. Refresh token được lưu ở server bằng cách nào?
+<a id="q10-12"></a>
+### 10.12. Refresh token được lưu ở server bằng cách nào?
 
 #### 📖 Giới thiệu kiến thức
 
 Access token thì **stateless** (server không lưu, chỉ verify chữ ký). Nhưng **refresh token dài hạn &
-cần thu hồi được** ([câu 9.11](#q9-11)) → hầu hết hệ thống **lưu refresh token ở server** để **kiểm tra
+cần thu hồi được** ([câu 10.11](#q10-11)) → hầu hết hệ thống **lưu refresh token ở server** để **kiểm tra
 còn hiệu lực & revoke**. Đây chính là "chút state" mà token-based phải chấp nhận ở tầng refresh.
 
 #### Lưu ở đâu?
@@ -1586,10 +1733,10 @@ SET refresh:<sha256(token)>  {"user_id":123,"jti":"...","device":"..."}  EX 6048
 - **Logout** → xoá / set `revoked_at` cho record → refresh sau bị từ chối.
 - **Đổi mật khẩu / logout-all** → xoá **mọi** refresh token của user.
 - **Rotation + reuse detection:** mỗi lần `/refresh` cấp token mới & vô hiệu token cũ (`replaced_by`);
-  nếu **token cũ bị dùng lại** → nghi bị đánh cắp → **revoke cả family** (xem [câu 9.11](#q9-11)).
+  nếu **token cũ bị dùng lại** → nghi bị đánh cắp → **revoke cả family** (xem [câu 10.11](#q10-11)).
 
 > **Refresh dạng JWT thì sao?** Dù JWT tự chứa, muốn revoke vẫn phải lưu **`jti` vào allowlist/denylist**
-> ở server. → **Vẫn cần một store.** (Token client giữ ở cookie `HttpOnly` — xem [câu 10.1](#q10-1);
+> ở server. → **Vẫn cần một store.** (Token client giữ ở cookie `HttpOnly` — xem [câu 11.1](#q11-1);
 > server chỉ giữ **bản hash / jti** để đối chiếu.)
 
 #### 🎯 Tóm tắt trả lời phỏng vấn
@@ -1604,12 +1751,12 @@ SET refresh:<sha256(token)>  {"user_id":123,"jti":"...","device":"..."}  EX 6048
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q9-13"></a>
-### 9.13. Refresh token rotation + reuse detection — mỗi lần `/refresh` làm gì?
+<a id="q10-13"></a>
+### 10.13. Refresh token rotation + reuse detection — mỗi lần `/refresh` làm gì?
 
 #### 📖 Giới thiệu kiến thức
 
-Hai khái niệm đi kèm nhau (nối tiếp [câu 9.11](#q9-11), [câu 9.12](#q9-12)):
+Hai khái niệm đi kèm nhau (nối tiếp [câu 10.11](#q10-11), [câu 10.12](#q10-12)):
 
 - **Rotation (xoay vòng):** mỗi lần dùng refresh token gọi `/refresh`, server **cấp refresh token MỚI**
   và **vô hiệu token cũ** → refresh token là **dùng một lần (one-time use)**.
@@ -1629,7 +1776,7 @@ Tất cả refresh token sinh ra từ **một lần đăng nhập** chia sẻ m�
 
 ```text
 1. Client gửi refresh token RT_old (từ cookie HttpOnly)
-2. Server hash(RT_old) → tra store (xem schema ở câu 9.12)
+2. Server hash(RT_old) → tra store (xem schema ở câu 10.12)
 3a. Không thấy / hết hạn                → 401 (từ chối)
 3b. Thấy nhưng ĐÃ revoked/used (đã xoay) → ⚠ REUSE DETECTED
         → revoke CẢ family (mọi RT cùng family_id) → 401, buộc login lại
@@ -1662,8 +1809,8 @@ async function refresh(rtRaw) {
 - **Race/retry hợp lệ:** mạng chập chờn khiến client **retry `/refresh` với RT_old** sau khi đã xoay →
   có thể **false-positive reuse**. Xử lý: một **grace window ngắn** cho token vừa xoay, hoặc chấp nhận
   đánh đổi **an toàn hơn** (cứ revoke family + bắt login lại).
-- Refresh token nên **`HttpOnly`+`Secure`+`SameSite`** (xem [câu 10.1](#q10-1)); server chỉ giữ **hash**
-  (xem [câu 9.12](#q9-12)).
+- Refresh token nên **`HttpOnly`+`Secure`+`SameSite`** (xem [câu 11.1](#q11-1)); server chỉ giữ **hash**
+  (xem [câu 10.12](#q10-12)).
 
 #### 🎯 Tóm tắt trả lời phỏng vấn
 
@@ -1677,12 +1824,12 @@ async function refresh(rtRaw) {
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q9-14"></a>
-### 9.14. Cách revoke hàng loạt JWT đã phát cho user (đổi mật khẩu, force logout)
+<a id="q10-14"></a>
+### 10.14. Cách revoke hàng loạt JWT đã phát cho user (đổi mật khẩu, force logout)
 
 #### 📖 Giới thiệu kiến thức
 
-Đây là câu đào sâu tiếp nối phần revoke ở [câu 9.11](#q9-11): không phải thu hồi **một** token, mà **vô
+Đây là câu đào sâu tiếp nối phần revoke ở [câu 10.11](#q10-11): không phải thu hồi **một** token, mà **vô
 hiệu hoá TẤT CẢ token đang lưu hành của một user (hoặc toàn hệ thống)** trong các tình huống:
 
 - **Đổi mật khẩu / reset mật khẩu** → mọi phiên cũ phải văng ra (đề phòng mật khẩu cũ đã bị lộ).
@@ -1744,7 +1891,7 @@ thống chết ngay**. Chỉ dùng khi **sự cố diện rộng** (nghi lộ kh
 chọn lọc được 1 user.
 
 **Kết hợp với refresh token:** các cách trên vô hiệu **access token**. Song song phải **xoá/đánh dấu
-revoked mọi refresh token của user** trong store ([câu 9.12](#q9-12)) để họ **không `/refresh` ra token
+revoked mọi refresh token của user** trong store ([câu 10.12](#q10-12)) để họ **không `/refresh` ra token
 mới** được. Vì **access token để ngắn hạn (5–15p)**, cửa sổ rủi ro giữa lúc revoke và lúc access cũ tự
 hết hạn là rất nhỏ — nên nhiều hệ thống chỉ cần **revoke refresh + access ngắn hạn** là đủ, không cần
 kiểm version mỗi request.
@@ -1773,14 +1920,14 @@ kiểm version mỗi request.
 - **Biến thể — `passwordChangedAt`:** so `iat` của token với thời điểm đổi mật khẩu; token cũ hơn → chặn.
   Hoặc **denylist theo user trên Redis** (TTL tự dọn).
 - **Cực đoan — đổi secret ký:** vô hiệu **toàn bộ** token cả hệ thống (đá văng mọi user), chỉ cho sự cố lớn.
-- **Kết hợp bắt buộc:** đồng thời **xoá/revoke mọi refresh token của user** ([câu 9.12](#q9-12)) để không
+- **Kết hợp bắt buộc:** đồng thời **xoá/revoke mọi refresh token của user** ([câu 10.12](#q10-12)) để không
   `/refresh` ra token mới; nhờ **access token ngắn hạn** nên cửa sổ rủi ro rất nhỏ.
 - Câu chốt: **"`token_version`/`passwordChangedAt` + revoke refresh token + access ngắn hạn"** là combo cân bằng nhất.
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q9-15"></a>
-### 9.15. OAuth2 là gì? Flow và các thành phần chính của OAuth2
+<a id="q10-15"></a>
+### 10.15. OAuth2 là gì? Flow và các thành phần chính của OAuth2
 
 #### 📖 Giới thiệu kiến thức
 
@@ -1792,7 +1939,7 @@ giới hạn.
 > Quan trọng: **OAuth2 là *authorization* (uỷ quyền truy cập tài nguyên), KHÔNG phải authentication.**
 > Muốn dùng để **xác thực danh tính** ("đăng nhập bằng Google") thì phải dùng **OpenID Connect (OIDC)** —
 > một lớp phủ **trên** OAuth2, bổ sung `id_token` (JWT chứa thông tin danh tính). Nhầm OAuth2 = login là
-> lỗi hay bị bắt (xem authn vs authz ở [câu 8](#q8)).
+> lỗi hay bị bắt (xem authn vs authz ở [câu 9](#q9)).
 
 #### 4 thành phần (roles) chính của OAuth2
 
@@ -1914,8 +2061,8 @@ sequenceDiagram
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q10"></a>
-## 10. Broken Authentication / Session là gì?
+<a id="q11"></a>
+## 11. Broken Authentication / Session là gì?
 
 ### 📖 Giới thiệu kiến thức
 
@@ -1989,8 +2136,8 @@ lỗ hổng trong danh mục ở [câu 2](#q2).
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q10-1"></a>
-### 10.1. Lưu access/refresh token ở đâu trên client & truyền access token thế nào?
+<a id="q11-1"></a>
+### 11.1. Lưu access/refresh token ở đâu trên client & truyền access token thế nào?
 
 #### 📖 Giới thiệu kiến thức
 
@@ -2049,8 +2196,8 @@ lưu ở đâu cho an toàn, và **truyền access token lên backend ở đâu*
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q11"></a>
-## 11. SSL là gì? Cách sử dụng?
+<a id="q12"></a>
+## 12. SSL là gì? Cách sử dụng?
 
 ### 📖 Giới thiệu kiến thức
 
@@ -2125,8 +2272,8 @@ dùng **TLS**, nhưng tên "SSL certificate" vẫn quen dùng.
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q11-1"></a>
-### 11.1. Phân biệt SSL và TLS
+<a id="q12-1"></a>
+### 12.1. Phân biệt SSL và TLS
 
 #### 📖 Giới thiệu kiến thức
 
@@ -2164,17 +2311,17 @@ thực sự chạy ngày nay là **TLS**. Sở dĩ vẫn nghe "SSL" khắp nơi 
 - Tên **"SSL certificate"** chỉ là **thói quen** — kỹ thuật đó là **TLS**; thứ chạy thật hiện nay là TLS.
 - **TLS mạnh hơn:** thuật toán MAC/cipher hiện đại (bỏ RC4/MD5), **handshake tối ưu** (TLS 1.3 chỉ
   **1-RTT**, có 0-RTT, bắt buộc **forward secrecy**).
-- Thực tế nên bật **TLS 1.2 & 1.3**, **tắt SSLv3/TLS 1.0/1.1** (xem cấu hình ở [câu 11](#q11)).
+- Thực tế nên bật **TLS 1.2 & 1.3**, **tắt SSLv3/TLS 1.0/1.1** (xem cấu hình ở [câu 12](#q12)).
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q11-2"></a>
-### 11.2. HTTPS và HTTP khác nhau thế nào?
+<a id="q12-2"></a>
+### 12.2. HTTPS và HTTP khác nhau thế nào?
 
 #### 📖 Giới thiệu kiến thức
 
 Khác biệt **cốt lõi** rất gọn: **HTTPS = HTTP + TLS**. Cùng một giao thức truyền tải web, nhưng HTTPS
-chạy **bên trong một kết nối TLS đã mã hoá** (xem [câu 11](#q11)), còn HTTP thì **truyền văn bản thô
+chạy **bên trong một kết nối TLS đã mã hoá** (xem [câu 12](#q12)), còn HTTP thì **truyền văn bản thô
 (plaintext)**.
 
 - **HTTP (HyperText Transfer Protocol)** — cổng **80**, **không mã hoá**. Mọi thứ (URL path, header,
@@ -2205,7 +2352,7 @@ chạy **bên trong một kết nối TLS đã mã hoá** (xem [câu 11](#q11)),
 - **HTTPS ≠ website an toàn/uy tín.** Ổ khoá chỉ đảm bảo **kết nối được mã hoá & đúng server của domain
   đó** — **không** đảm bảo nội dung không lừa đảo (site phishing vẫn có thể xin được cert Let's Encrypt).
 - HTTP thiếu cả 3 đảm bảo → **tuyệt đối không** truyền dữ liệu nhạy cảm qua HTTP (liên hệ
-  [câu 12](#q12)).
+  [câu 13](#q13)).
 
 #### 🎯 Tóm tắt trả lời phỏng vấn
 
@@ -2218,8 +2365,8 @@ chạy **bên trong một kết nối TLS đã mã hoá** (xem [câu 11](#q11)),
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q12"></a>
-## 12. Sensitive Data Exposure là gì?
+<a id="q13"></a>
+## 13. Sensitive Data Exposure là gì?
 
 ### 📖 Giới thiệu kiến thức
 
@@ -2234,7 +2381,7 @@ mã hoá, mã hoá yếu, hoặc rò rỉ qua log/lỗi/URL. Đây là một tro
 #### Nguyên nhân thường gặp
 
 - **Truyền không mã hoá**: dùng HTTP thuần thay vì **HTTPS/TLS** → bị sniff trên đường truyền.
-- **Lưu mật khẩu sai**: plaintext hoặc hash yếu (MD5/SHA1) — xem thêm [câu 10](#q10).
+- **Lưu mật khẩu sai**: plaintext hoặc hash yếu (MD5/SHA1) — xem thêm [câu 11](#q11).
 - **Không mã hoá dữ liệu khi lưu** (at rest): DB/backup/file để trần.
 - **Thuật toán/khoá yếu**: DES, RC4, key ngắn, **hardcode key trong source**, không xoay khoá.
 - **Rò rỉ qua kênh phụ**: log chứa secret, **thông báo lỗi lộ thông tin**, dữ liệu nhạy cảm trên **URL**,
@@ -2248,7 +2395,7 @@ mã hoá, mã hoá yếu, hoặc rò rỉ qua log/lỗi/URL. Đây là một tro
   cá nhân) — vd **AES-256**.
 
 → Mật khẩu thì **băm**, không "mã hoá hai chiều"; dữ liệu cần dùng lại thì **mã hoá** có quản lý khoá.
-(Đào sâu ở [câu 12.1](#q12-1).)
+(Đào sâu ở [câu 13.1](#q13-1).)
 
 #### Cách phòng chống
 
@@ -2274,8 +2421,8 @@ mã hoá, mã hoá yếu, hoặc rò rỉ qua log/lỗi/URL. Đây là một tro
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q12-1"></a>
-### 12.1. Hashing và Encryption khác nhau thế nào? Cách lưu password vào DB?
+<a id="q13-1"></a>
+### 13.1. Hashing và Encryption khác nhau thế nào? Cách lưu password vào DB?
 
 #### 📖 Giới thiệu kiến thức
 
@@ -2354,7 +2501,7 @@ const ok   = await argon2.verify(hashFromDB, input);  // xác thực
 ```
 
 > **Không tự cài thuật toán, không tự nối salt bằng tay** — dùng API sẵn (`password_hash`/`password_verify`,
-> `argon2`/`bcrypt`). Chúng đã lo salt, cost và **so sánh constant-time** (xem [câu 14](#q14)) đúng cách.
+> `argon2`/`bcrypt`). Chúng đã lo salt, cost và **so sánh constant-time** (xem [câu 15](#q15)) đúng cách.
 
 #### 🎯 Tóm tắt trả lời phỏng vấn
 
@@ -2373,8 +2520,8 @@ const ok   = await argon2.verify(hashFromDB, input);  // xác thực
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q12-2"></a>
-### 12.2. Cách compare (verify) password đã hash khi đăng nhập?
+<a id="q13-2"></a>
+### 13.2. Cách compare (verify) password đã hash khi đăng nhập?
 
 #### 📖 Giới thiệu kiến thức
 
@@ -2387,7 +2534,7 @@ cùng cost → **luôn ra cùng hash**. Nên nếu mật khẩu nhập đúng, h
 
 **Vấn đề: salt lấy đâu ra để băm lại?** Salt ngẫu nhiên riêng mỗi user. Với **bcrypt/Argon2**, salt và
 tham số cost **được nhúng ngay trong chuỗi hash** đã lưu — nên thư viện **tự trích ra** để băm lại. Đó là
-lý do chỉ cần lưu **một cột hash** (xem [câu 12.1](#q12-1)).
+lý do chỉ cần lưu **một cột hash** (xem [câu 13.1](#q13-1)).
 
 **Các bước bên trong `password_verify($input, $storedHash)`:**
 
@@ -2401,7 +2548,7 @@ storedHash = $argon2id$v=19$m=65536,t=4,p=1$<salt>$<hash-cũ>
 ```
 
 Bước 3 dùng **constant-time comparison** (không dừng sớm ở byte khác đầu tiên) để không rò rỉ thông tin
-qua thời gian phản hồi — chi tiết ở [câu 14](#q14).
+qua thời gian phản hồi — chi tiết ở [câu 15](#q15).
 
 **❌ Hai lỗi sai kinh điển khi tự so:**
 
@@ -2445,20 +2592,20 @@ const ok = await argon2.verify(storedHash, input);   // Argon2 tự trích salt 
 - **Salt** lấy từ đâu? bcrypt/Argon2 **nhúng salt + cost ngay trong chuỗi hash** → hàm verify tự trích ra
   để băm lại; đó là lý do chỉ cần lưu 1 cột hash.
 - **Dùng hàm chuyên dụng:** `password_verify` (PHP), `argon2.verify` / `bcrypt.compare` (Node) — chúng tự
-  trích salt **và** so **constant-time** (chống timing attack, [câu 14](#q14)).
+  trích salt **và** so **constant-time** (chống timing attack, [câu 15](#q15)).
 - **Tránh 2 lỗi:** (1) băm lại bằng `password_hash` rồi so chuỗi → **luôn sai** vì salt ngẫu nhiên mỗi
   lần; (2) so bằng `==`/`===` → rò rỉ thời gian. Có thể kèm `password_needs_rehash` để nâng cấp cost.
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q12-3"></a>
-### 12.3. Sử dụng salt trong hash password như thế nào?
+<a id="q13-3"></a>
+### 13.3. Sử dụng salt trong hash password như thế nào?
 
 #### 📖 Giới thiệu kiến thức
 
 **Salt** là một chuỗi **ngẫu nhiên**, **duy nhất cho mỗi mật khẩu**, được **trộn vào mật khẩu trước khi
 băm**. Mục đích: làm cho hai người **cùng mật khẩu** vẫn ra **hash khác nhau**, và vô hiệu hoá các bảng
-hash dựng sẵn. Đây là phần đào sâu của tier "salt" đã nêu ở [câu 12.1](#q12-1).
+hash dựng sẵn. Đây là phần đào sâu của tier "salt" đã nêu ở [câu 13.1](#q13-1).
 
 **1) Vì sao PHẢI có salt? — 3 mối đe doạ salt hoá giải:**
 
@@ -2487,7 +2634,7 @@ Có salt:     hash("x7Qa" + "123456")  = 4f2b9c...      user A (salt x7Qa)
 **3) Lưu salt ở đâu? — bcrypt/Argon2 tự lo:**
 
 Không cần cột `salt` riêng. Các hàm `password_hash` (bcrypt/Argon2) **tự sinh salt** và **nhúng thẳng** vào
-chuỗi kết quả, nên chỉ lưu **một cột hash** (xem thêm [câu 12.1](#q12-1)):
+chuỗi kết quả, nên chỉ lưu **một cột hash** (xem thêm [câu 13.1](#q13-1)):
 
 ```text
 $2y$12$Wq3v9kZ8s1uJrN7pQxO2ee<...>     ← bcrypt
@@ -2496,7 +2643,7 @@ $2y$12$Wq3v9kZ8s1uJrN7pQxO2ee<...>     ← bcrypt
  └ thuật toán ($2y$ = bcrypt)
 ```
 
-Khi verify, hàm **đọc lại salt từ chính chuỗi này** để băm lại input rồi so ([câu 12.2](#q12-2)).
+Khi verify, hàm **đọc lại salt từ chính chuỗi này** để băm lại input rồi so ([câu 13.2](#q13-2)).
 
 **4) Code — để thư viện tự sinh salt (khuyến nghị):**
 
@@ -2529,15 +2676,15 @@ const hash = await bcrypt.hash(password, 12);   // salt nhúng trong hash
 - **Yêu cầu:** sinh bằng **CSPRNG** (`random_bytes`/`crypto.randomBytes`), **duy nhất mỗi user**, **≥ 16
   byte**, **không cần bí mật** (lưu cùng hash).
 - **Lưu ở đâu:** với **bcrypt/Argon2**, salt được **tự sinh và nhúng trong chuỗi hash** → chỉ lưu 1 cột;
-  verify đọc lại salt từ đó ([câu 12.2](#q12-2)).
+  verify đọc lại salt từ đó ([câu 13.2](#q13-2)).
 - **Thực hành:** để `password_hash`/`bcrypt`/`argon2` **tự sinh salt** — đừng tự nối tay.
 - **Tránh:** salt tĩnh/dùng chung, salt ngắn/đoán được, salt + hash nhanh (MD5/SHA) — salt **không thay**
   cho hàm băm chậm. Phân biệt **salt** (công khai, mỗi user) vs **pepper** (secret chung, lưu tách DB).
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q12-4"></a>
-### 12.4. Phân biệt salt và pepper chi tiết
+<a id="q13-4"></a>
+### 13.4. Phân biệt salt và pepper chi tiết
 
 #### 📖 Giới thiệu kiến thức
 
@@ -2613,8 +2760,8 @@ hệ nhạy cảm, thêm một lớp phòng thủ khi **chỉ DB bị lộ**. D�
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q12-5"></a>
-### 12.5. Chặn user đặt mật khẩu mới trùng 3 mật khẩu gần nhất (password history)
+<a id="q13-5"></a>
+### 13.5. Chặn user đặt mật khẩu mới trùng 3 mật khẩu gần nhất (password history)
 
 #### 📖 Giới thiệu kiến thức
 
@@ -2622,10 +2769,10 @@ hệ nhạy cảm, thêm một lớp phòng thủ khi **chỉ DB bị lộ**. D�
 (password history / prevent password reuse — yêu cầu phổ biến trong chính sách bảo mật, NIST/ISO).
 
 **⚠️ Cái bẫy kỹ thuật (điểm mấu chốt):** ta **lưu hash chứ không lưu plaintext**, mà bcrypt/Argon2 sinh
-**salt ngẫu nhiên mỗi bản ghi** → **cùng một mật khẩu băm hai lần ra hai hash KHÁC nhau** ([câu 12.3](#q12-3)).
+**salt ngẫu nhiên mỗi bản ghi** → **cùng một mật khẩu băm hai lần ra hai hash KHÁC nhau** ([câu 13.3](#q13-3)).
 Vì vậy **KHÔNG thể** phát hiện trùng bằng cách so **chuỗi hash**. Bắt buộc phải dùng **`password_verify(mật
 khẩu mới, hash cũ)`** cho **từng** hash trong lịch sử — để nó tự trích salt của hash cũ, băm lại mật khẩu
-mới bằng đúng salt đó rồi so ([câu 12.2](#q12-2)).
+mới bằng đúng salt đó rồi so ([câu 13.2](#q13-2)).
 
 **Thiết kế:**
 
@@ -2684,7 +2831,7 @@ function changePassword(int $userId, string $current, string $new): void
 - **Prune để bảng không phình:** chỉ giữ vài bản ghi/user (vd N hoặc N+1). Nếu cần **audit** thì giữ nhiều
   hơn nhưng vẫn chỉ **query 3 cái** khi kiểm tra.
 - **Có pepper?** phải áp dụng **cùng bước tiền xử lý** (`HMAC(password, pepper)`) trước khi verify, đồng bộ
-  với lúc tạo hash ([câu 12.4](#q12-4)) — nếu không sẽ luôn "không trùng" sai.
+  với lúc tạo hash ([câu 13.4](#q13-4)) — nếu không sẽ luôn "không trùng" sai.
 - **Hiệu năng:** mỗi `password_verify` (bcrypt/Argon2) cố tình **chậm** (~50–200ms). 3 lần ≈ vài trăm ms —
   **chấp nhận được** vì đổi mật khẩu **không phải hot path**. Đừng hạ cost chỉ để nhanh chỗ này.
 - **Race condition:** hai request đổi mật khẩu song song → bọc bước cập nhật + ghi history trong
@@ -2692,7 +2839,7 @@ function changePassword(int $userId, string $current, string $new): void
 - **Đổi thuật toán/cost theo thời gian không sao:** `password_verify` đọc tham số **từ chính từng hash cũ**,
   nên hash cũ (bcrypt cost 10) và mới (Argon2id) vẫn kiểm được bình thường.
 - **Không dùng hash nhanh (MD5/SHA) để "so cho tiện":** vẫn phải là bcrypt/Argon2; salt + slow hash là bắt
-  buộc ([câu 12.1](#q12-1)).
+  buộc ([câu 13.1](#q13-1)).
 
 > **Laravel:** hiện thực gọn bằng một **custom validation rule** (`Rule` gọi `Hash::check($new, $oldHash)`
 > qua từng bản ghi history) + model `PasswordHistory`; `Hash::check` chính là `password_verify`.
@@ -2711,14 +2858,14 @@ function changePassword(int $userId, string $current, string $new): void
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q13"></a>
-## 13. Các hàm hash và mã hoá phổ biến
+<a id="q14"></a>
+## 14. Các hàm hash và mã hoá phổ biến
 
 ### 📖 Giới thiệu kiến thức
 
 Đây là câu hỏi **tổng quan về primitive mật mã** — nắm được "có những họ hàm nào, dùng vào việc gì" là
 nền để trả lời mọi câu về lưu mật khẩu, JWT, TLS, chữ ký số. Nhắc lại phân biệt ba nhóm (chi tiết ở
-[câu 12.1](#q12-1)):
+[câu 13.1](#q13-1)):
 
 - **Hash** — **một chiều**, không khoá, không giải ngược (integrity, lưu mật khẩu).
 - **Encryption** — **hai chiều**, có **khoá** để giải mã (giữ bí mật dữ liệu cần đọc lại).
@@ -2753,12 +2900,12 @@ output). Chia làm ba nhóm theo mục đích:
 - **scrypt** — **memory-hard** (tốn RAM), chống ASIC/GPU.
 - **Argon2** (khuyến nghị **Argon2id**) — chỉnh được **memory + time + parallelism**; hiện đại nhất.
 
-→ Dùng cho **lưu mật khẩu** (chi tiết cơ chế ở [câu 12.1](#q12-1) và [algorithm.md câu 3](./algorithm.md#q3)).
+→ Dùng cho **lưu mật khẩu** (chi tiết cơ chế ở [câu 13.1](#q13-1) và [algorithm.md câu 3](./algorithm.md#q3)).
 
 **3) HMAC (Hash-based MAC) — hash CÓ khoá:** kết hợp một hàm hash với một **secret key** để tạo mã xác
 thực: `HMAC-SHA256(key, message)`. Cùng một message nhưng **không có key thì không giả được** MAC. Dùng
-cho: **ký JWT HS256** ([câu 9.5](#q9-5)), xác thực **webhook**, chống giả mạo request. (So sánh MAC phải
-**constant-time** — [câu 14](#q14).)
+cho: **ký JWT HS256** ([câu 10.5](#q10-5)), xác thực **webhook**, chống giả mạo request. (So sánh MAC phải
+**constant-time** — [câu 15](#q15).)
 
 ---
 
@@ -2817,9 +2964,9 @@ không ai mở được, chỉ server mở.
 > **Lưu ý chính xác:** TLS **hiện đại thường không** dùng RSA key-transport như trên, mà dùng **ECDHE
 > key-agreement** — hai bên *cùng tạo ra* session key thay vì một bên gửi, để có **forward secrecy** (lộ
 > private key sau này cũng không giải được phiên cũ). Nhưng **ý tưởng lai vẫn y hệt**: bất đối xứng lo
-> khâu khoá, đối xứng mã dữ liệu. Chi tiết handshake xem [câu 11](#q11).
+> khâu khoá, đối xứng mã dữ liệu. Chi tiết handshake xem [câu 12](#q12).
 
-**Dùng ở đâu:** **TLS/HTTPS**, **JWE** (`alg` bọc **CEK** — [câu 9.10](#q9-10)), **PGP/email**, **Signal**.
+**Dùng ở đâu:** **TLS/HTTPS**, **JWE** (`alg` bọc **CEK** — [câu 10.10](#q10-10)), **PGP/email**, **Signal**.
 
 ---
 
@@ -2827,7 +2974,7 @@ không ai mở được, chỉ server mở.
 
 Ghép **hash + bất đối xứng**: băm message → **ký hash bằng private key**; bên nhận **verify bằng public
 key**. Đảm bảo cùng lúc **3 tính chất**: **integrity** (không bị sửa), **authenticity** (đúng người ký),
-**non-repudiation** (không chối được đã ký). Đây là nền của JWT **RS256/ES256** ([câu 9.8](#q9-8)),
+**non-repudiation** (không chối được đã ký). Đây là nền của JWT **RS256/ES256** ([câu 10.8](#q10-8)),
 chứng chỉ TLS, ký code/commit.
 
 ---
@@ -2861,14 +3008,14 @@ chứng chỉ TLS, ký code/commit.
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q14"></a>
-## 14. So sánh constant-time là gì? (timing attack)
+<a id="q15"></a>
+## 15. So sánh constant-time là gì? (timing attack)
 
 ### 📖 Giới thiệu kiến thức
 
 **So sánh constant-time (constant-time comparison)** là cách so sánh hai chuỗi/byte **mất thời gian như
 nhau bất kể chúng khác nhau ở đâu** — nhằm chống **timing attack** (tấn công kênh phụ dựa vào **thời
-gian**). Kỹ thuật này được nhắc khi verify chữ ký JWT ([câu 9.5](#q9-5)) và HMAC ([câu 9.8](#q9-8)).
+gian**). Kỹ thuật này được nhắc khi verify chữ ký JWT ([câu 10.5](#q10-5)) và HMAC ([câu 10.8](#q10-8)).
 
 #### Vì sao so sánh chuỗi thông thường lại nguy hiểm?
 

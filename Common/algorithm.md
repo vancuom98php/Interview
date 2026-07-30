@@ -140,9 +140,9 @@ SHA-256("hellp")  = 7f1a... (đổi 1 ký tự → hash khác HOÀN TOÀN — av
 **SHA-256 dùng để làm gì?**
 - **Kiểm tra toàn vẹn (integrity):** checksum file, verify download (so hash).
 - **Chữ ký số & JWT:** phần "SHA-256" trong **HS256/RS256/ES256** chính là hàm băm này
-  ([bảo mật — HS256/RS256/ES256](./security.md#q9-8)).
+  ([bảo mật — HS256/RS256/ES256](./security.md#q10-8)).
 - **Hash token/API key** để lưu (token entropy cao nên SHA-256 là đủ —
-  [bảo mật — lưu refresh token](./security.md#q9-12)).
+  [bảo mật — lưu refresh token](./security.md#q10-12)).
 - **Blockchain / Proof-of-Work** (Bitcoin dùng SHA-256), **Merkle tree**, **deduplication**.
 
 **⚠️ KHÔNG dùng SHA-256 để lưu MẬT KHẨU.** Vì nó **quá nhanh** → GPU băm hàng tỷ chuỗi/giây → dễ
@@ -338,11 +338,11 @@ Tốc độ là **tốt hay xấu** tuỳ mục đích dùng:
   **KHÔNG** làm hàm băm chậm lại.
 - Có salt nhưng vẫn là SHA-256 thì GPU vẫn băm **hàng tỷ lần/giây** để brute-force từng mật khẩu. → Muốn
   an toàn phải **vừa có salt vừa CHẬM** = đúng bản chất bcrypt/Argon2. (Chi tiết salt/pepper ở
-  [security.md câu 12.3–12.4](./security.md#q12-3).)
+  [security.md câu 13.3–13.4](./security.md#q13-3).)
 
 > **Quy tắc chốt:** *dữ liệu cần verify nhanh & toàn vẹn → **băm nhanh** (SHA-256); bí mật của người
 > dùng như mật khẩu → **băm chậm** (Argon2id/bcrypt).* Token/API key entropy cao (ngẫu nhiên dài) thì
-> **SHA-256 là đủ** vì không thể brute-force ([security.md câu 9.12](./security.md#q9-12)).
+> **SHA-256 là đủ** vì không thể brute-force ([security.md câu 10.12](./security.md#q10-12)).
 
 ### 🎯 Tóm tắt trả lời phỏng vấn
 
