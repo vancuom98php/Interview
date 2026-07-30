@@ -64,15 +64,17 @@
   - [18.3. Cơ chế lưu key kèm TTL (thời gian sống) hoạt động thế nào?](#q18-3)
   - [18.4. Các ứng dụng thực tế của Redis](#q18-4)
   - [18.5. Thực tế hay dùng data type nào của Redis? Implement qua thư viện gì?](#q18-5)
-  - [18.6. Redis làm delayed job queue (hàng đợi job có trì hoãn) thế nào?](#q18-6)
-  - [18.7. Delayed job queue khác job queue thường khi xử lý ở Redis thế nào?](#q18-7)
-  - [18.8. Redis Pub/Sub hoạt động thế nào?](#q18-8)
-  - [18.9. Redis Stream hoạt động thế nào?](#q18-9)
-  - [18.10. Redis distributed lock (khóa phân tán) hoạt động thế nào?](#q18-10)
-  - [18.11. Redis — làm sao để tránh leak/rò rỉ dữ liệu (bảo mật)?](#q18-11)
-  - [18.12. Redis — cơ chế lưu bền & khôi phục (restore) dữ liệu](#q18-12)
-  - [18.13. Giải pháp data recovery hoàn chỉnh cho Redis (production playbook)](#q18-13)
-  - [18.14. Redis Cluster hoạt động thế nào?](#q18-14)
+  - [18.6. Phân biệt 2 thư viện `redis` (node-redis) và `ioredis`](#q18-6)
+  - [18.7. Redis làm delayed job queue (hàng đợi job có trì hoãn) thế nào?](#q18-7)
+  - [18.8. Delayed job queue khác job queue thường khi xử lý ở Redis thế nào?](#q18-8)
+  - [18.9. BullMQ hoạt động thế nào bên trong Redis?](#q18-9)
+  - [18.10. Redis Pub/Sub hoạt động thế nào?](#q18-10)
+  - [18.11. Redis Stream hoạt động thế nào?](#q18-11)
+  - [18.12. Redis distributed lock (khóa phân tán) hoạt động thế nào?](#q18-12)
+  - [18.13. Redis — làm sao để tránh leak/rò rỉ dữ liệu (bảo mật)?](#q18-13)
+  - [18.14. Redis — cơ chế lưu bền & khôi phục (restore) dữ liệu](#q18-14)
+  - [18.15. Giải pháp data recovery hoàn chỉnh cho Redis (production playbook)](#q18-15)
+  - [18.16. Redis Cluster hoạt động thế nào?](#q18-16)
 
 ---
 
@@ -4340,7 +4342,7 @@ chủ yếu trong **RAM** nên đọc/ghi cực nhanh (**µs–ms**). Redis là 
 
 **Đặc điểm cốt lõi:**
 - **In-memory:** giữ toàn bộ dataset trong RAM → nhanh; có cơ chế **persistence** ghi ra đĩa để không mất khi
-  restart (xem mục 18.12).
+  restart (xem mục 18.14).
 - **Single-threaded** (cho phần thực thi lệnh): mỗi lệnh xử lý tuần tự → **atomic** tự nhiên, không lo race
   condition ở cấp 1 lệnh (từ Redis 6 có I/O đa luồng cho network, nhưng lệnh vẫn tuần tự).
 - **TTL & auto-expire:** mỗi key có thể đặt thời gian sống, hết hạn tự xóa — hợp cho cache/session.
@@ -4438,7 +4440,7 @@ thường **vài–vài chục ms**). Không phải do "Redis viết tối ưu h
 - MySQL (InnoDB) trả giá cho **độ bền & nhất quán**: ghi **redo log + undo log**, khóa hàng (row lock), MVCC, fsync
   khi commit → an toàn nhưng **tốn**.
 - Redis **single-thread**, mỗi lệnh **atomic tự nhiên**, persistence **bất đồng bộ** (AOF/RDB ghi nền) → **không**
-  chặn thao tác. Đổi lại: chấp nhận **có thể mất vài giây dữ liệu** khi sự cố (mục 18.12).
+  chặn thao tác. Đổi lại: chấp nhận **có thể mất vài giây dữ liệu** khi sự cố (mục 18.14).
 
 **4. Kiến trúc single-thread + I/O đa hợp (multiplexing).**
 - Redis xử lý lệnh trên **một luồng** dùng **event loop (epoll)** → **không tốn chi phí khóa (lock), không context
@@ -4635,7 +4637,7 @@ mình dùng cùng những cái bẫy của nó.
 | 7 | **Bitmap / HyperLogLog** | Đếm DAU / unique **cực tiết kiệm RAM** (HLL ~12KB cho hàng triệu phần tử, sai số ~0.81%) | `SETBIT/BITCOUNT`, `PFADD/PFCOUNT` |
 | 8 | **Geo** | Tìm theo bán kính (tài xế/cửa hàng gần) | `GEOADD/GEOSEARCH` |
 
-> **Pub/Sub không phải data type** mà là một *cơ chế* (`PUBLISH/SUBSCRIBE`, fire-and-forget — mục 18.8).
+> **Pub/Sub không phải data type** mà là một *cơ chế* (`PUBLISH/SUBSCRIBE`, fire-and-forget — mục 18.10).
 > Nhiều người nhầm khi kể "các loại Redis".
 >
 > Ngoài core, **Redis Stack** thêm module: **RedisJSON** (query field trong JSON), **RediSearch**
@@ -4673,7 +4675,7 @@ $user = Cache::remember("user:$id", 3600, fn () => User::find($id));
 
 // 2) Distributed lock — Cache::lock() bọc sẵn SET NX PX + token an toàn khi release
 Cache::lock("order:$id", 10)->block(3, function () use ($id) {
-    // chỉ 1 tiến trình vào đây tại một thời điểm (xem mục 18.10)
+    // chỉ 1 tiến trình vào đây tại một thời điểm (xem mục 18.12)
 });
 
 // 3) Việc Redis-đặc-thù (ZSet leaderboard) → dùng thẳng facade Redis
@@ -4731,7 +4733,7 @@ await this.mailQueue.add('welcome', { userId }, { delay: 60_000, attempts: 3 });
 - **Đừng `KEYS *` trên production** (O(N), block single-thread) → dùng `SCAN`/`scanStream` của ioredis.
 - **Redis Cluster**: lệnh multi-key (`MGET`, Lua nhiều KEYS, transaction) chỉ chạy khi các key **cùng
   slot** → phải dùng **hash tag** `user:{123}:profile`; client cluster của thư viện không tự gộp giúp
-  (mục 18.14).
+  (mục 18.16).
 
 #### 🎯 Tóm tắt trả lời phỏng vấn
 
@@ -4757,7 +4759,104 @@ await this.mailQueue.add('welcome', { userId }, { delay: 60_000, attempts: 3 });
 [↑ Mục lục](#mục-lục)
 
 <a id="q18-6"></a>
-### 18.6. Redis làm delayed job queue (hàng đợi job có trì hoãn) thế nào?
+### 18.6. Phân biệt 2 thư viện `redis` (node-redis) và `ioredis`
+
+#### 📖 Giới thiệu kiến thức
+
+Đây là 2 client Redis phổ biến nhất của **Node.js**. Cả hai đều nói **cùng giao thức RESP** với **cùng một
+Redis server** — nên **không có "cái nào mạnh hơn" về mặt tính năng Redis**; khác biệt nằm ở **API, hành vi
+kết nối và hệ sinh thái đi kèm**.
+
+| | **`redis` (node-redis)** | **`ioredis`** |
+|---|---|---|
+| **Xuất thân** | Client **chính chủ**, do Redis maintain | Ban đầu là client cộng đồng, nay cũng nằm dưới tổ chức Redis; là **de-facto** trong ecosystem Node nhiều năm |
+| **Kết nối** | **Phải gọi `await client.connect()`** — quên là dính `ClientClosedError` | **Tự connect ngay khi `new Redis()`** (muốn hoãn thì `lazyConnect: true`) |
+| **Tên lệnh** | **camelCase**: `hGetAll`, `zAdd`, `expire` | **Giống hệt Redis (thường)**: `hgetall`, `zadd` — copy lệnh từ `redis-cli` sang dùng luôn |
+| **Pipeline** | **Tự động gộp** các lệnh phát trong cùng một tick của event loop | Mặc định gửi từng lệnh; muốn tự động thì bật `enableAutoPipelining: true`, hoặc gom tay bằng `pipeline()` |
+| **Cluster / Sentinel** | `createCluster()` | `new Redis.Cluster()` / cấu hình `sentinels` — **rất trưởng thành**, nhiều hệ thống lớn dùng |
+| **Tiện ích "đời thường"** | Không có `keyPrefix` sẵn (tự nối prefix) | Có sẵn **`keyPrefix`**, **`retryStrategy`**, `maxRetriesPerRequest`, `enableReadyCheck`, **`scanStream`** (Node stream cho `SCAN`) |
+| **Lua** | `EVAL`/`SCRIPT LOAD` trực tiếp | Có thêm **`defineCommand()`** — biến script Lua thành **method riêng** của client, gọi như lệnh Redis |
+| **RESP3, client-side caching, Redis Stack** | Ưu tiên tính năng mới: **RESP3**, **client-side caching**, typed command cho **RedisJSON/RediSearch** (`client.json.set`, `client.ft.search`), **connection pool** ở v5 | Chạy tốt với lệnh cơ bản; tính năng mới thường về node-redis trước |
+| **Hệ sinh thái** | `@keyv/redis` / `cache-manager` (dùng trong `@nestjs/cache-manager` bản mới), `connect-redis` | **BullMQ bắt buộc dùng ioredis**, `connect-redis`, `@socket.io/redis-adapter`, `rate-limiter-flexible` |
+| **Kiểu dữ liệu TypeScript** | Typing chặt hơn, có type mapping | Typing lỏng hơn (hay trả `string \| null`, tự parse) |
+
+**Cùng một việc, viết bằng 2 thư viện:**
+
+```ts
+// ---------- node-redis (package: redis) ----------
+import { createClient } from 'redis';
+const client = createClient({ url: 'redis://localhost:6379' });
+client.on('error', (e) => logger.error(e));
+await client.connect();                       // ⚠ BẮT BUỘC, khác ioredis
+
+await client.set('user:1', JSON.stringify(u), { EX: 3600 });   // option kiểu object
+const profile = await client.hGetAll('user:1:profile');        // camelCase
+for await (const key of client.scanIterator({ MATCH: 'sess:*' })) { /* ... */ }
+
+// ---------- ioredis ----------
+import Redis from 'ioredis';
+const redis = new Redis({ host: 'localhost', port: 6379, keyPrefix: 'app:' }); // connect ngay
+
+await redis.set('user:1', JSON.stringify(u), 'EX', 3600);      // đúng thứ tự đối số như redis-cli
+const profile = await redis.hgetall('user:1:profile');         // lowercase như lệnh Redis
+redis.scanStream({ match: 'sess:*' }).on('data', (keys) => { /* ... */ });
+```
+
+**Điểm khác dễ gây bug nhất — thời điểm kết nối:**
+
+```ts
+// ioredis: dùng được ngay, lệnh phát trước khi connect xong được xếp vào offline queue rồi chạy sau
+const redis = new Redis();
+await redis.get('k');            // ✅ chạy được
+
+// node-redis: quên connect() là lỗi runtime, không phải lỗi compile
+const client = createClient();
+await client.get('k');           // ❌ ClientClosedError: The client is closed
+```
+
+**Chọn cái nào?**
+
+- **Chọn `ioredis` khi:** dự án dùng **BullMQ** (không có lựa chọn khác), cần **Cluster/Sentinel** nhiều,
+  thích API giống hệt `redis-cli`, cần `keyPrefix`/`scanStream`/`defineCommand`, hoặc kế thừa codebase cũ.
+- **Chọn `redis` (node-redis) khi:** dự án **mới**, muốn client **chính chủ** cập nhật lâu dài, cần
+  **RESP3 / client-side caching**, dùng **Redis Stack** (JSON/Search/vector) với command có type, hoặc
+  đi theo `@nestjs/cache-manager`/Keyv.
+- **Đừng dùng cả hai trong một service**: 2 bộ connection pool, 2 kiểu cấu hình, 2 cách serialize → khó
+  giám sát. Nếu đã có BullMQ thì thường thống nhất luôn **ioredis** cho toàn app.
+
+> **Lưu ý chuyển dịch:** tính năng mới của Redis (RESP3, client-side caching, module) được ưu tiên đưa vào
+> **node-redis** — nên với dự án mới, node-redis là lựa chọn "an toàn về lâu dài", còn **ioredis vẫn là bắt
+> buộc nếu dùng BullMQ**. Nếu hạ tầng chuyển sang **Valkey**, cả hai vẫn chạy (tương thích RESP), ngoài ra
+> có client riêng như `valkey-glide` / `iovalkey`.
+
+#### Bẫy chung cho cả hai (hay bị hỏi tiếp)
+
+- Client phải là **singleton** — đừng `new Redis()` trong mỗi request/handler (mục 18.5).
+- Client đang **`SUBSCRIBE` không dùng cho lệnh thường** được → Pub/Sub cần **connection riêng** (BullMQ và
+  socket.io adapter vì thế tự mở thêm connection).
+- **BullMQ + ioredis:** connection của worker cần **`maxRetriesPerRequest: null`** (vì `BRPOPLPUSH` block lâu).
+- Luôn gắn **`client.on('error', ...)`** — thiếu handler thì lỗi socket có thể làm **crash process**.
+- **Cluster**: lệnh multi-key/Lua nhiều KEYS cần **hash tag** `{}` để các key cùng slot (mục 18.16).
+
+#### 🎯 Tóm tắt trả lời phỏng vấn
+
+- Cả hai là **client Node.js nói cùng giao thức RESP tới cùng Redis server** → khác nhau ở **API, hành vi
+  kết nối và hệ sinh thái**, không phải ở "sức mạnh Redis".
+- **`redis` (node-redis)** = client **chính chủ**: lệnh **camelCase** (`hGetAll`), **bắt buộc
+  `await client.connect()`**, **tự động pipeline** trong cùng tick, ưu tiên tính năng mới (**RESP3,
+  client-side caching**, typed command cho **RedisJSON/RediSearch**, connection pool).
+- **`ioredis`** = client phổ biến nhất trong thực tế: **tự connect khi khởi tạo**, tên lệnh **giống hệt
+  `redis-cli`** (`hgetall`), mạnh về **Cluster/Sentinel**, có sẵn **`keyPrefix`, `retryStrategy`,
+  `scanStream`, `defineCommand`** cho Lua.
+- **Chọn:** dùng **BullMQ** → **bắt buộc ioredis**; dự án mới/cần RESP3 + Redis Stack → **node-redis**;
+  **không trộn cả hai** trong một service.
+- **Khác biệt hay gây bug nhất:** node-redis quên `connect()` → **`ClientClosedError`**, còn ioredis kết nối
+  ngay và **xếp lệnh vào offline queue** trong lúc chờ.
+
+[↑ Mục lục](#mục-lục)
+
+<a id="q18-7"></a>
+### 18.7. Redis làm delayed job queue (hàng đợi job có trì hoãn) thế nào?
 
 #### 📖 Giới thiệu kiến thức
 
@@ -4824,8 +4923,8 @@ return jobs
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q18-7"></a>
-### 18.7. Delayed job queue khác job queue thường khi xử lý ở Redis thế nào?
+<a id="q18-8"></a>
+### 18.8. Delayed job queue khác job queue thường khi xử lý ở Redis thế nào?
 
 #### 📖 Giới thiệu kiến thức
 
@@ -4876,7 +4975,7 @@ ZRANGEBYSCORE queue:delayed -inf <now> LIMIT 0 10       # lấy job đã tới h
 **5. Thực tế: hai loại thường ghép chung.** Delayed queue thường chỉ là **tầng "hẹn giờ"** phía trước. Một worker
 điều phối **poll** Sorted Set, thấy job tới hạn thì **chuyển sang List "ready"** (`LPUSH`), rồi các worker xử lý
 dùng **`BRPOP`** như queue thường. Laravel làm đúng vậy: ZSet `:delayed` → migrate (Lua atomic) → List `queues:default`
-→ `BRPOP` (xem mục 18.6).
+→ `BRPOP` (xem mục 18.7).
 
 #### 🎯 Tóm tắt trả lời phỏng vấn
 
@@ -4891,8 +4990,141 @@ dùng **`BRPOP`** như queue thường. Laravel làm đúng vậy: ZSet `:delaye
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q18-8"></a>
-### 18.8. Redis Pub/Sub hoạt động thế nào?
+<a id="q18-9"></a>
+### 18.9. BullMQ hoạt động thế nào bên trong Redis?
+
+#### 📖 Giới thiệu kiến thức
+
+**BullMQ** là thư viện job queue phổ biến nhất của Node (chạy trên **ioredis** — mục 18.6). Redis **không có
+kiểu "queue" dựng sẵn**, nên BullMQ **tự dựng queue từ các data type cơ bản** đúng theo mô hình ở mục 18.7–18.8:
+**List cho job sẵn sàng, Sorted Set cho job hẹn giờ, Hash cho nội dung job**, và **mọi chuyển trạng thái đều
+là một Lua script atomic**. Hiểu phần này là hiểu luôn cách viết một queue nghiêm túc.
+
+##### a) Bản đồ key trong Redis
+
+Mọi key đều mang prefix `bull:<tên queue>:`. Với queue tên `mail`:
+
+| Key | Data type | Vai trò |
+|---|---|---|
+| `bull:mail:id` | String | Bộ đếm `INCR` sinh **job id** tăng dần |
+| `bull:mail:<jobId>` | **Hash** | **Nội dung job**: `name`, `data` (JSON), `opts`, `timestamp`, `attemptsMade`, `processedOn`, `finishedOn`, `returnvalue`, `failedReason`, `stacktrace` |
+| `bull:mail:wait` | **List** | Job **sẵn sàng chạy** (chỉ chứa **jobId**, không chứa data) |
+| `bull:mail:active` | **List** | Job **đang được worker xử lý** |
+| `bull:mail:delayed` | **ZSet** | Job **hẹn giờ**, `score` ≈ timestamp tới hạn (kèm vài bit thứ tự để giữ FIFO khi trùng mili-giây) |
+| `bull:mail:prioritized` | **ZSet** | Job có **priority** (score = mức ưu tiên) |
+| `bull:mail:completed` / `:failed` | **ZSet** | Lịch sử job xong/lỗi (score = thời điểm kết thúc) — để `removeOnComplete/Fail` trim theo **số lượng hoặc tuổi** |
+| `bull:mail:<jobId>:lock` | String + **TTL** | **Lock của worker** đang giữ job (mặc định `lockDuration` 30s) |
+| `bull:mail:stalled` | Set | Job bị nghi **stalled** (worker chết giữa chừng) |
+| `bull:mail:paused` | List | Nơi giữ job khi queue bị `pause()` |
+| `bull:mail:meta` | Hash | Cấu hình queue (đang pause?, version...) |
+| `bull:mail:events` | **Stream** | Sự kiện `added/active/completed/failed/progress` (`XADD` + `maxlen`) cho `QueueEvents` — chính là Redis Stream ở mục 18.11 |
+| `bull:mail:limiter` | String + TTL | Đếm cho **rate limit** (giới hạn N job / khoảng thời gian) |
+
+> **Job data nằm ở Hash, các List/ZSet chỉ giữ jobId.** Nhờ vậy job đi qua nhiều trạng thái mà **không phải
+> copy payload**, và trạng thái nào cũng tra được chi tiết bằng 1 lệnh `HGETALL`.
+
+##### b) Vòng đời một job
+
+```text
+add()                     ┌──────────── retry (backoff) ────────────┐
+  │                       │                                          │
+  ├─ có delay ──► [delayed ZSet] ──(tới hạn)──► [wait List] ──► [active List] ──► [completed ZSet]
+  ├─ có priority ► [prioritized ZSet] ─────────►                  │
+  └─ thường ─────────────────────────────────► [wait List]        └── hết attempts ──► [failed ZSet]
+
+lock hết hạn (worker chết) ──► [stalled Set] ──► quay lại [wait]  (tối đa maxStalledCount lần)
+```
+
+- **`queue.add()`** → 1 Lua script: `INCR` lấy id → `HSET` job hash → `LPUSH` vào `wait` (hoặc `ZADD` vào
+  `delayed`/`prioritized`) → `XADD` event `added`. **Một lệnh atomic**, không có trạng thái nửa vời.
+- **Worker lấy job** → Lua `moveToActive`: chuyển jobId từ `wait` sang `active`, **`SET lock` kèm TTL**, tăng
+  `attemptsMade`, ghi `processedOn`, `XADD` event `active` — tất cả trong một script nên **hai worker không
+  thể cùng nhận một job** (Redis đơn luồng, xem mục 18.2).
+- **Xong việc** → Lua `moveToFinished`: xoá khỏi `active`, xoá `lock`, `ZADD` vào `completed`, ghi
+  `returnvalue`, trim lịch sử theo `removeOnComplete`, `XADD` event `completed`.
+- **Lỗi** → còn `attempts` thì tính **backoff** rồi `ZADD` lại vào **`delayed`** (retry chính là một delayed
+  job); hết attempts → vào **`failed`** kèm `failedReason` + `stacktrace` (đây chính là **DLQ**).
+
+##### c) Ba cơ chế cốt lõi nên nói khi phỏng vấn
+
+**1. Lua script = atomicity.** Mỗi chuyển trạng thái đụng **nhiều key** (list + hash + zset + stream). BullMQ
+gói chúng vào Lua (`SCRIPT LOAD` → gọi bằng `EVALSHA`), Redis chạy script **nguyên khối** → không bao giờ có
+cảnh "job vừa ở `wait` vừa ở `active`", cũng không cần transaction/lock ở tầng app.
+
+**2. Lock + stalled detection = chống mất job khi worker chết.** Worker giữ `<jobId>:lock` có **TTL** và
+**tự gia hạn** (renew) trong lúc xử lý. Nếu tiến trình chết/bị OOM kill, không ai renew → **lock hết hạn**;
+bộ **stalled checker** phát hiện job nằm trong `active` mà **không còn lock** → đưa **về lại `wait`** để worker
+khác chạy (tối đa `maxStalledCount`, mặc định 1, rồi mới cho `failed`).
+→ Hệ quả quan trọng: BullMQ giao **at-least-once**, nên **job phải idempotent** (xem `Common/resolve-problem.md`).
+
+**3. Đánh thức worker không cần polling nóng.** Bản cũ dùng `BRPOPLPUSH wait → active` (blocking, giống mô
+hình ở mục 18.8). Từ **v5**, BullMQ dùng cơ chế **"marker"**: worker chặn trên một key báo hiệu
+(`BZPOPMIN`) rồi mới chạy Lua `moveToActive` — nhờ vậy xử lý thống nhất được cả **wait + prioritized +
+delayed** mà vẫn **ngủ khi rảnh** (không đốt CPU). Với job `delayed`, worker tính **thời điểm gần nhất** để
+hẹn timer, tới hạn thì chạy script chuyển sang `wait` — không quét ZSet liên tục.
+
+```lua
+-- Tinh thần của moveToActive (rút gọn): nhiều key, một script → atomic
+local jobId = redis.call('RPOPLPUSH', KEYS[1], KEYS[2])          -- wait -> active
+if jobId then
+  redis.call('SET', KEYS[3] .. jobId .. ':lock', ARGV[1], 'PX', ARGV[2])  -- lock + TTL
+  redis.call('HINCRBY', KEYS[3] .. jobId, 'attemptsMade', 1)
+  redis.call('XADD', KEYS[4], '*', 'event', 'active', 'jobId', jobId)
+end
+return jobId
+```
+
+```ts
+// Nhìn thấy tận mắt: sau khi add 1 job delay 60s
+await queue.add('welcome', { userId: 7 }, { delay: 60_000, attempts: 3 });
+
+// redis-cli (dùng SCAN, đừng KEYS * trên prod):
+//   bull:mail:id            -> "1"
+//   bull:mail:1             -> Hash: name=welcome, data={"userId":7}, opts={"attempts":3,...}
+//   bull:mail:delayed       -> ZSet: member "1", score ≈ (now+60000) << 12
+//   bull:mail:events        -> Stream: event=added, jobId=1
+```
+
+##### d) Hệ quả vận hành (phần ăn điểm)
+
+- **`maxmemory-policy` phải là `noeviction`.** Redis được cấu hình evict key (`allkeys-lru`) sẽ **xoá mất job
+  hash/list** → **mất job âm thầm**. Đây là lỗi cấu hình kinh điển khi dùng chung Redis cache với queue →
+  **nên tách instance/DB riêng cho queue**.
+- **Queue nằm hoàn toàn trong RAM** → phải bật `removeOnComplete`/`removeOnFail` (theo count hoặc age), nếu
+  không ZSet `completed` phình vô hạn. Muốn không mất job khi Redis restart thì cần **AOF** (mục 18.14).
+- **Redis Cluster:** một queue đụng nhiều key → phải nằm **cùng slot** → đặt prefix có **hash tag**, vd
+  `new Queue('mail', { prefix: '{bull}' })` (mục 18.16).
+- **Số connection nhân lên:** mỗi Worker/QueueEvents mở connection riêng (blocking + subscriber), nên đừng
+  ngạc nhiên khi thấy connection gấp 2–3 lần số instance; connection của worker cần
+  **`maxRetriesPerRequest: null`**.
+- **`lockDuration` phải lớn hơn thời gian xử lý thật** (hoặc gọi `job.updateProgress()`/renew), nếu không job
+  đang chạy bình thường vẫn bị coi là **stalled** và **chạy lặp** — nguyên nhân phổ biến của "email gửi 2 lần".
+- **Concurrency** của Worker là số job xử lý **đồng thời trong một tiến trình Node** (không phải số process);
+  CPU-bound thì dùng **sandboxed processor** (chạy file riêng) để không chặn event loop.
+
+#### 🎯 Tóm tắt trả lời phỏng vấn
+
+- Redis **không có kiểu queue sẵn** → BullMQ **tự dựng** bằng data type cơ bản, prefix `bull:<queue>:`:
+  **Hash** giữ **nội dung job**, **List `wait`/`active`** giữ **jobId** sẵn sàng/đang chạy, **ZSet `delayed`**
+  (score = thời điểm chạy) và **ZSet `prioritized`**, **ZSet `completed`/`failed`** làm lịch sử, **Stream
+  `events`** phát sự kiện, cùng key **`<jobId>:lock` có TTL**.
+- **Vòng đời:** `add` → `wait` (hoặc `delayed` nếu có delay) → `active` → `completed`; lỗi mà còn `attempts`
+  thì **quay lại `delayed` theo backoff**, hết attempts thì vào **`failed` (DLQ)**.
+- **3 cơ chế cốt lõi:**
+  1. **Mọi chuyển trạng thái là một Lua script** → atomic trên Redis đơn luồng, không có job "ở hai nơi",
+     không cần lock tầng app.
+  2. **Lock có TTL + stalled checker:** worker renew lock khi đang chạy; worker chết → lock hết hạn → job
+     **về lại `wait`**. Vì vậy BullMQ là **at-least-once** → **job phải idempotent**.
+  3. **Worker ngủ khi rảnh:** bản cũ `BRPOPLPUSH`, từ v5 dùng **marker + `BZPOPMIN`** rồi chạy Lua; job delay
+     được hẹn timer theo job gần nhất thay vì poll liên tục.
+- **Vận hành phải nhớ:** Redis của queue để **`maxmemory-policy noeviction`** (evict = **mất job**) và nên
+  **tách riêng khỏi Redis cache**; bật **`removeOnComplete/Fail`** kẻo phình RAM; **`lockDuration` > thời gian
+  xử lý** kẻo job bị coi là stalled và **chạy lặp**; Cluster cần **hash tag** trong prefix.
+
+[↑ Mục lục](#mục-lục)
+
+<a id="q18-10"></a>
+### 18.10. Redis Pub/Sub hoạt động thế nào?
 
 #### 📖 Giới thiệu kiến thức
 
@@ -4963,8 +5195,8 @@ PSUBSCRIBE order.*      # nhận mọi channel bắt đầu bằng "order." (ord
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q18-9"></a>
-### 18.9. Redis Stream hoạt động thế nào?
+<a id="q18-11"></a>
+### 18.11. Redis Stream hoạt động thế nào?
 
 #### 📖 Giới thiệu kiến thức
 
@@ -5035,7 +5267,7 @@ XTRIM orders MINID 1720000000000                     # xóa entry cũ hơn một
 ship), thu thập log/metric, nhiều service tiêu thụ cùng nguồn sự kiện với tiến độ (offset) riêng.
 
 > **Chốt bản chất:** Stream = **log bền + consumer group + ACK/retry**. Cần đảm bảo **không mất & xử lý lại được**
-> → Stream. Chỉ cần realtime nhẹ, chấp nhận mất → Pub/Sub (mục 18.8). Hàng đợi job đơn giản → List (mục 18.7).
+> → Stream. Chỉ cần realtime nhẹ, chấp nhận mất → Pub/Sub (mục 18.10). Hàng đợi job đơn giản → List (mục 18.8).
 
 #### 🎯 Tóm tắt trả lời phỏng vấn
 
@@ -5051,8 +5283,8 @@ ship), thu thập log/metric, nhiều service tiêu thụ cùng nguồn sự ki�
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q18-10"></a>
-### 18.10. Redis distributed lock (khóa phân tán) hoạt động thế nào?
+<a id="q18-12"></a>
+### 18.12. Redis distributed lock (khóa phân tán) hoạt động thế nào?
 
 #### 📖 Giới thiệu kiến thức
 
@@ -5167,8 +5399,8 @@ function writeToResource(int $orderId, int $fencingToken, array $data): void
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q18-11"></a>
-### 18.11. Redis — làm sao để tránh leak/rò rỉ dữ liệu (bảo mật)?
+<a id="q18-13"></a>
+### 18.13. Redis — làm sao để tránh leak/rò rỉ dữ liệu (bảo mật)?
 
 #### 📖 Giới thiệu kiến thức
 
@@ -5241,8 +5473,8 @@ rename-command CONFIG "CONFIG_9a3f"   # đổi tên khó đoán
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q18-12"></a>
-### 18.12. Redis — cơ chế lưu bền & khôi phục (restore) dữ liệu
+<a id="q18-14"></a>
+### 18.14. Redis — cơ chế lưu bền & khôi phục (restore) dữ liệu
 
 #### 📖 Giới thiệu kiến thức
 
@@ -5327,8 +5559,8 @@ systemctl start redis     # Redis tự nạp dump.rdb khi khởi động
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q18-13"></a>
-### 18.13. Giải pháp data recovery hoàn chỉnh cho Redis (production playbook)
+<a id="q18-15"></a>
+### 18.15. Giải pháp data recovery hoàn chỉnh cho Redis (production playbook)
 
 #### 📖 Giới thiệu kiến thức
 
@@ -5408,8 +5640,8 @@ replica được chọn, rồi trỏ app sang.
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q18-14"></a>
-### 18.14. Redis Cluster hoạt động thế nào?
+<a id="q18-16"></a>
+### 18.16. Redis Cluster hoạt động thế nào?
 
 #### 📖 Giới thiệu kiến thức
 
