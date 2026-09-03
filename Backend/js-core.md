@@ -18,26 +18,28 @@
    - 2.1. [Babel là gì?](#q2-1)
    - 2.2. [Webpack là gì?](#q2-2)
    - 2.3. [Phân biệt Webpack và Vite](#q2-3)
-3. [Phân biệt tham trị (pass by value) và tham chiếu (pass by reference) trong JavaScript](#q3)
-   - 3.1. [Mutable và Immutable trong JavaScript](#q3-1)
-4. [Truthy và Falsy trong JavaScript/TypeScript](#q4)
-5. [Phân biệt `for...in` và `for...of` trong JavaScript](#q5)
-6. [Map và Set trong JavaScript](#q6)
-7. [Phân biệt anonymous function và named function trong JavaScript](#q7)
-   - 7.1. [Phân biệt arrow function và regular function](#q7-1)
-8. [Vòng đời thực thi của JavaScript (JS lifecycle)](#q8)
-   - 8.1. [Các thành phần của cơ chế bất đồng bộ: Execution Context, Call Stack, Task Queue, Web APIs, Event Loop](#q8-1)
-9. [Bất đồng bộ (asynchronous) trong JavaScript là gì?](#q9)
-   - 9.1. [Callback là gì? Callback hell?](#q9-1)
-   - 9.2. [Promise là gì? States, then/catch/finally, chaining](#q9-2)
-   - 9.3. [Phân biệt Promise.all, Promise.race, Promise.allSettled và Promise.any](#q9-3)
-   - 9.4. [async/await là gì?](#q9-4)
-   - 9.5. [Phân biệt callback, Promise và async/await](#q9-5)
-   - 9.6. [Phân biệt microtask và macrotask](#q9-6)
-   - 9.7. [RxJS là gì?](#q9-7)
-10. [Proxy trong JavaScript là gì?](#q10)
-    - 10.1. [Reflect dùng để làm gì? Vì sao đi cùng Proxy?](#q10-1)
-    - 10.2. [Vue 3 dùng Proxy cho reactivity như thế nào?](#q10-2)
+3. [Phân biệt `var`, `let`, `const` trong JavaScript](#q3)
+4. [Phân biệt tham trị (pass by value) và tham chiếu (pass by reference) trong JavaScript](#q4)
+   - 4.1. [Mutable và Immutable trong JavaScript](#q4-1)
+   - 4.2. [Cách so sánh 2 object hoặc 2 mảng trong JavaScript](#q4-2)
+5. [Truthy và Falsy trong JavaScript/TypeScript](#q5)
+6. [Phân biệt `for...in` và `for...of` trong JavaScript](#q6)
+7. [Map và Set trong JavaScript](#q7)
+8. [Phân biệt anonymous function và named function trong JavaScript](#q8)
+   - 8.1. [Phân biệt arrow function và regular function](#q8-1)
+9. [Vòng đời thực thi của JavaScript (JS lifecycle)](#q9)
+   - 9.1. [Các thành phần của cơ chế bất đồng bộ: Execution Context, Call Stack, Task Queue, Web APIs, Event Loop](#q9-1)
+10. [Bất đồng bộ (asynchronous) trong JavaScript là gì?](#q10)
+    - 10.1. [Callback là gì? Callback hell?](#q10-1)
+    - 10.2. [Promise là gì? States, then/catch/finally, chaining](#q10-2)
+    - 10.3. [Phân biệt Promise.all, Promise.race, Promise.allSettled và Promise.any](#q10-3)
+    - 10.4. [async/await là gì?](#q10-4)
+    - 10.5. [Phân biệt callback, Promise và async/await](#q10-5)
+    - 10.6. [Phân biệt microtask và macrotask](#q10-6)
+    - 10.7. [RxJS là gì?](#q10-7)
+11. [Proxy trong JavaScript là gì?](#q11)
+    - 11.1. [Reflect dùng để làm gì? Vì sao đi cùng Proxy?](#q11-1)
+    - 11.2. [Vue 3 dùng Proxy cho reactivity như thế nào?](#q11-2)
 
 ---
 
@@ -608,7 +610,7 @@ mọi trình duyệt. Đặc trưng:
   hỗ trợ **JSON** (`JSON.parse/stringify`); **strict mode** (`"use strict"`).
 
 **ES6 / ES2015 — bản nâng cấp LỚN nhất** (interviewer hỏi nhiều nhất). Những tính năng cốt lõi:
-- **`let` / `const`** — block-scoped, có **TDZ**, thay thế `var` (xem [câu 8](#q8) về hoisting).
+- **`let` / `const`** — block-scoped, có **TDZ**, thay thế `var` (xem [câu 3](#q3)).
 - **Arrow function** `() => {}` — ngắn gọn, **không có `this` riêng** (lấy `this` từ scope ngoài —
   lexical this).
 - **Template literals** `` `Hello ${name}` `` (chuỗi nhiều dòng, nội suy biến).
@@ -616,7 +618,7 @@ mọi trình duyệt. Đặc trưng:
 - **Spread / rest** `...` (gộp/sao chép mảng-object, gom tham số).
 - **Default parameters** `function f(a = 1) {}`.
 - **Class** (cú pháp `class`, `extends`, `super` — sugar trên prototype).
-- **Promise** (chuẩn hóa xử lý bất đồng bộ — xem [câu 9.2](#q9-2)).
+- **Promise** (chuẩn hóa xử lý bất đồng bộ — xem [câu 10.2](#q10-2)).
 - **Module** `import` / `export` (ES Modules).
 - **Mới khác:** `Map`, `Set`, `Symbol`, generator (`function*`), `for...of`, computed property name.
 
@@ -689,7 +691,7 @@ var greet = function (name) { return "Hi " + name; };
   type-check** (khác `tsc`; liên hệ type erasure ở [câu 1](#q1)).
 - Dùng **tính năng đề xuất (proposal/stage)** chưa chuẩn hóa.
 
-**Cách hoạt động — 3 giai đoạn (giống pipeline compiler & AST ở [câu 8](#q8)):**
+**Cách hoạt động — 3 giai đoạn (giống pipeline compiler & AST ở [câu 9](#q9)):**
 
 ```
 1. Parse     : code → AST (Abstract Syntax Tree)
@@ -860,7 +862,122 @@ của khác biệt tốc độ. Xem thêm [Webpack](#q2-2) và [Babel](#q2-1).
 [↑ Mục lục](#mục-lục)
 
 <a id="q3"></a>
-## 3. Phân biệt tham trị (pass by value) và tham chiếu (pass by reference) trong JavaScript
+## 3. Phân biệt `var`, `let`, `const` trong JavaScript
+
+### 📖 Giới thiệu kiến thức
+
+JavaScript có 3 cách khai báo biến. `var` là cách duy nhất trước ES6; `let` và `const` được thêm
+từ **ES6 (2015)** để sửa những điểm dễ gây bug của `var`. Khác biệt nằm ở **4 trục**: scope,
+hoisting, khả năng khai báo lại / gán lại, và quan hệ với global object.
+
+| Tiêu chí | `var` | `let` | `const` |
+|---|---|---|---|
+| Scope | **Function scope** | **Block scope** (`{}`) | **Block scope** |
+| Hoisting | Có, khởi tạo sẵn `undefined` | Có, nhưng nằm trong **TDZ** | Có, nhưng nằm trong **TDZ** |
+| Khai báo lại (redeclare) | ✅ Được | ❌ `SyntaxError` | ❌ `SyntaxError` |
+| Gán lại (reassign) | ✅ Được | ✅ Được | ❌ `TypeError` |
+| Bắt buộc gán khi khai báo | Không | Không | ✅ Bắt buộc |
+| Tạo property trên `globalThis` | ✅ Có (khi ở top-level script) | ❌ Không | ❌ Không |
+
+#### 1) Scope: function scope vs block scope
+
+`var` chỉ "nhìn thấy" ranh giới của **function**, nó xuyên qua mọi block `if`/`for`/`{}`.
+`let`/`const` bị giới hạn trong **block** gần nhất — đúng như trực giác ở các ngôn ngữ khác.
+
+```js
+function demo() {
+  if (true) {
+    var a = 1;   // thuộc về function demo
+    let b = 2;   // chỉ tồn tại trong block if
+  }
+  console.log(a); // 1
+  console.log(b); // ReferenceError: b is not defined
+}
+```
+
+#### 2) Hoisting và TDZ (Temporal Dead Zone)
+
+Cả 3 đều được **hoisting** (khai báo được "kéo" lên đầu scope khi engine tạo Execution Context),
+nhưng khác nhau ở chỗ *đã được khởi tạo hay chưa*:
+
+- `var`: được khởi tạo sẵn giá trị `undefined` → đọc trước dòng khai báo vẫn chạy, ra `undefined`.
+  Đây là nguồn bug âm thầm: code không lỗi nhưng giá trị sai.
+- `let`/`const`: đã tồn tại trong scope nhưng **chưa được khởi tạo**. Khoảng từ đầu block tới
+  dòng khai báo gọi là **TDZ** — truy cập trong khoảng này ném `ReferenceError`. Đây là thiết kế
+  có chủ đích: biến lỗi *to tiếng* ngay thay vì trả về `undefined` mập mờ.
+
+```js
+console.log(x); // undefined  → var được init sẵn
+var x = 5;
+
+console.log(y); // ReferenceError: Cannot access 'y' before initialization (TDZ)
+let y = 5;
+```
+
+#### 3) `const` không có nghĩa là "immutable"
+
+`const` khóa **binding** (liên kết tên biến → vùng nhớ), **không** khóa *nội dung* giá trị.
+Với primitive thì hai điều này trùng nhau, nhưng với object/array thì nội dung vẫn sửa được:
+
+```js
+const user = { name: 'An' };
+user.name = 'Bình';        // ✅ OK — sửa nội dung object
+user.age = 20;             // ✅ OK
+user = { name: 'Cường' };  // ❌ TypeError: Assignment to constant variable.
+
+const nums = [1, 2];
+nums.push(3);              // ✅ OK → [1, 2, 3]
+```
+
+Muốn thật sự không cho sửa nội dung thì dùng `Object.freeze()` (shallow) — xem thêm
+[Mutable và Immutable](#q4-1).
+
+#### 4) Bẫy kinh điển: `var` trong vòng lặp + closure
+
+`var` chỉ có **một** biến duy nhất dùng chung cho cả vòng lặp, nên các callback bất đồng bộ
+đều tham chiếu tới cùng biến đó (giá trị cuối cùng). `let` tạo **binding mới cho mỗi lần lặp**:
+
+```js
+for (var i = 0; i < 3; i++) setTimeout(() => console.log(i)); // 3, 3, 3
+for (let j = 0; j < 3; j++) setTimeout(() => console.log(j)); // 0, 1, 2
+```
+
+Trước ES6 phải "vá" bằng IIFE để tạo scope riêng; với `let` thì engine tự làm việc đó.
+
+#### 5) Global object
+
+Ở top-level của một script, `var` tạo property trên global object; `let`/`const` thì không —
+tránh vô tình ghi đè biến toàn cục / API sẵn có của trình duyệt:
+
+```js
+var a = 1;  globalThis.a; // 1
+let  b = 2; globalThis.b; // undefined
+```
+
+#### Nên dùng cái nào?
+
+Quy tắc thực dụng phổ biến: **mặc định dùng `const`**, chỉ đổi sang `let` khi biến thật sự cần
+gán lại (biến đếm, accumulator, biến gán trong `if/else`), và **không dùng `var`** trong code mới.
+Ưu tiên `const` giúp người đọc biết ngay "giá trị này không đổi", giảm không gian lỗi.
+
+### 🎯 Tóm tắt trả lời phỏng vấn
+
+- **Scope**: `var` là *function scope* (xuyên qua block), `let`/`const` là *block scope*.
+- **Hoisting**: cả 3 đều hoisting, nhưng `var` được khởi tạo sẵn `undefined` nên đọc trước
+  khai báo không lỗi; `let`/`const` nằm trong **TDZ** → truy cập trước khai báo ném `ReferenceError`.
+- **Redeclare / reassign**: `var` cho phép cả hai; `let` cho gán lại nhưng không khai báo lại;
+  `const` không cho gán lại và **bắt buộc gán ngay** khi khai báo.
+- **`const` khóa binding, không khóa giá trị**: vẫn sửa được property của object / phần tử mảng;
+  muốn đóng băng nội dung phải `Object.freeze()`.
+- **Vòng lặp**: `var` dùng chung 1 biến cho mọi vòng lặp (bẫy closure kinh điển `3,3,3`),
+  `let` tạo binding mới mỗi vòng nên ra `0,1,2`.
+- **Global**: `var` ở top-level tạo property trên `globalThis`, `let`/`const` thì không.
+- **Thực tế**: mặc định `const`, cần gán lại thì `let`, tránh `var` trong code mới.
+
+[↑ Mục lục](#mục-lục)
+
+<a id="q4"></a>
+## 4. Phân biệt tham trị (pass by value) và tham chiếu (pass by reference) trong JavaScript
 
 ### 📖 Giới thiệu kiến thức
 
@@ -962,7 +1079,7 @@ deep.address.city = "DN";               // original không đổi
 ```
 
 > Liên hệ: phân nhóm primitive nằm ở [câu 1.1](#q1-1); chuyện stack/heap & thu hồi object không còn
-> tham chiếu (Garbage Collection) ở [câu 8](#q8).
+> tham chiếu (Garbage Collection) ở [câu 9](#q9).
 
 ### 🎯 Tóm tắt trả lời phỏng vấn
 
@@ -981,12 +1098,12 @@ deep.address.city = "DN";               // original không đổi
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q3-1"></a>
-### 3.1. Mutable và Immutable trong JavaScript
+<a id="q4-1"></a>
+### 4.1. Mutable và Immutable trong JavaScript
 
 #### 📖 Giới thiệu kiến thức
 
-Đây là phần **đào sâu** của [câu 3](#q3): pass-by-value/reference nói về *cách truyền* dữ liệu, còn
+Đây là phần **đào sâu** của [câu 4](#q4): pass-by-value/reference nói về *cách truyền* dữ liệu, còn
 mutable/immutable nói về *dữ liệu có sửa được tại chỗ hay không*. Hai khái niệm đi liền nhau và cùng
 gốc: **primitive là immutable, object là mutable**.
 
@@ -1031,7 +1148,7 @@ ref.name = "Chi";
 console.log(user.name); // "Chi" — mọi biến trỏ tới object đều "thấy" thay đổi
 ```
 
-Đây là gốc rễ của bug "vô tình sửa nhầm dữ liệu gốc" (đã nói ở [câu 3](#q3)).
+Đây là gốc rễ của bug "vô tình sửa nhầm dữ liệu gốc" (đã nói ở [câu 4](#q4)).
 
 **④ `const` KHÔNG phải immutable — hai chuyện khác nhau:**
 
@@ -1106,8 +1223,222 @@ const filtered = state.list.filter(x => x.id !== id);  // xóa phần tử
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q4"></a>
-## 4. Truthy và Falsy trong JavaScript/TypeScript
+<a id="q4-2"></a>
+### 4.2. Cách so sánh 2 object hoặc 2 mảng trong JavaScript
+
+#### 📖 Giới thiệu kiến thức
+
+Đây là câu hỏi kiểm tra xem ứng viên có thực sự hiểu **reference vs value** hay không. Vì object/array
+là **kiểu tham chiếu**, mọi toán tử so sánh có sẵn của JS đều **so sánh địa chỉ**, không so sánh nội dung.
+
+**① Vì sao `===` và `==` luôn "sai" với object/array?**
+
+```js
+{ a: 1 } === { a: 1 }   // false — 2 object khác nhau trên heap
+[1, 2] === [1, 2]       // false
+[1, 2] == [1, 2]        // false — == cũng so sánh reference khi 2 vế cùng là object
+
+const x = { a: 1 };
+const y = x;
+x === y                 // true — CÙNG một reference
+```
+
+> `==` chỉ ép kiểu khi 2 vế **khác kiểu**. Khi cả hai đều là object thì `==` hành xử y hệt `===`.
+> Bẫy phổ biến: `[1,2] == "1,2"` → **true** (array bị ép về string), nhưng đó là ép kiểu chứ không
+> phải "so sánh nội dung".
+
+**② `Object.is` cũng không giúp gì**
+
+`Object.is(a, b)` chỉ khác `===` ở 2 edge case về primitive: `Object.is(NaN, NaN) === true` và
+`Object.is(0, -0) === false`. Với object nó vẫn là so sánh reference.
+
+**③ Shallow comparison (so sánh nông) — so 1 tầng**
+
+Đủ dùng cho object phẳng (props của React, state phẳng của Redux). So số lượng key rồi so từng
+giá trị bằng `Object.is`:
+
+```js
+function shallowEqual(a, b) {
+  if (Object.is(a, b)) return true;                       // cùng reference / cùng primitive
+  if (typeof a !== 'object' || a === null) return false;
+  if (typeof b !== 'object' || b === null) return false;
+
+  const ka = Object.keys(a), kb = Object.keys(b);
+  if (ka.length !== kb.length) return false;              // khác số key → khác
+
+  return ka.every(k =>
+    Object.prototype.hasOwnProperty.call(b, k) && Object.is(a[k], b[k])
+  );
+}
+
+shallowEqual({ a: 1, b: 2 }, { a: 1, b: 2 });             // true
+shallowEqual({ a: { x: 1 } }, { a: { x: 1 } });           // false — tầng 2 vẫn so reference
+```
+
+Với **array**, shallow compare rút gọn còn: cùng độ dài + từng phần tử bằng nhau theo **đúng thứ tự**:
+
+```js
+const arrEqual = (a, b) =>
+  Array.isArray(a) && Array.isArray(b) &&
+  a.length === b.length &&
+  a.every((v, i) => Object.is(v, b[i]));
+
+arrEqual([1, 2, 3], [1, 2, 3]);    // true
+arrEqual([1, 2, 3], [3, 2, 1]);    // false — khác thứ tự
+```
+
+**④ `JSON.stringify` — nhanh nhưng nhiều bẫy (không nên dùng ở production)**
+
+```js
+JSON.stringify(a) === JSON.stringify(b)
+```
+
+Cách "một dòng" hay được nhắc, nhưng sai trong nhiều trường hợp:
+
+| Bẫy | Ví dụ | Kết quả sai |
+|---|---|---|
+| **Thứ tự key** | `{a:1,b:2}` vs `{b:2,a:1}` | `false` dù nội dung giống |
+| **`undefined` / function / symbol** | `{a: undefined}` → `"{}"` | `{a:undefined}` == `{}` → `true` sai |
+| **`NaN`, `Infinity`** | đều thành `null` | `NaN` == `Infinity` → `true` sai |
+| **`Date`, `Map`, `Set`, `RegExp`** | `Map` → `"{}"` | 2 `Map` khác nhau vẫn bằng nhau |
+| **Circular reference** | `obj.self = obj` | **Throw** `TypeError` |
+| **Hiệu năng** | object lớn | Tạo 2 chuỗi lớn, tốn RAM |
+
+→ Chỉ dùng cho dữ liệu JSON thuần, nhỏ, biết chắc key cùng thứ tự (vd: so 2 response API đã chuẩn hoá).
+
+**⑤ Deep comparison (so sánh sâu) — đệ quy**
+
+Đây là cách đúng: đệ quy xuống từng tầng, xử lý riêng các kiểu đặc biệt.
+
+```js
+function deepEqual(a, b) {
+  if (Object.is(a, b)) return true;                       // primitive + cùng reference + NaN
+
+  // Phải cùng là object và khác null
+  if (typeof a !== 'object' || a === null) return false;
+  if (typeof b !== 'object' || b === null) return false;
+
+  // Khác "loài" (Array vs Object, Date vs Object...) → khác
+  if (Object.getPrototypeOf(a) !== Object.getPrototypeOf(b)) return false;
+
+  // Kiểu đặc biệt: Date, RegExp
+  if (a instanceof Date)   return a.getTime() === b.getTime();
+  if (a instanceof RegExp) return a.source === b.source && a.flags === b.flags;
+
+  // Array
+  if (Array.isArray(a)) {
+    if (a.length !== b.length) return false;
+    return a.every((v, i) => deepEqual(v, b[i]));
+  }
+
+  // Map / Set
+  if (a instanceof Map) {
+    if (a.size !== b.size) return false;
+    for (const [k, v] of a) {
+      if (!b.has(k) || !deepEqual(v, b.get(k))) return false;
+    }
+    return true;
+  }
+  if (a instanceof Set) {
+    if (a.size !== b.size) return false;
+    for (const v of a) if (!b.has(v)) return false;       // lưu ý: Set so phần tử theo reference
+    return true;
+  }
+
+  // Plain object
+  const ka = Object.keys(a), kb = Object.keys(b);
+  if (ka.length !== kb.length) return false;
+  return ka.every(k =>
+    Object.prototype.hasOwnProperty.call(b, k) && deepEqual(a[k], b[k])
+  );
+}
+
+deepEqual({ a: { x: [1, 2] } }, { a: { x: [1, 2] } });    // true — không phụ thuộc thứ tự key
+deepEqual([NaN], [NaN]);                                  // true — nhờ Object.is
+```
+
+> Bản production cần thêm **WeakMap** để chống **circular reference** (lưu cặp `a → b` đã duyệt,
+> gặp lại thì trả `true`), nếu không sẽ **stack overflow**.
+
+**⑥ Dùng thư viện (khuyến nghị cho production)**
+
+| Cách | Môi trường | Ghi chú |
+|---|---|---|
+| `_.isEqual(a, b)` (lodash) | Browser + Node | Đầy đủ nhất: Date, RegExp, Map, Set, TypedArray, circular |
+| `util.isDeepStrictEqual(a, b)` | **Node.js built-in** | Không cần cài package, so sánh strict theo cả kiểu |
+| `fast-deep-equal` | Browser + Node | Rất nhẹ (~500B), nhanh, đủ cho JSON-like data |
+| `assert.deepStrictEqual` | Node (test) | Dùng trong test — **throw** khi khác, không trả boolean |
+
+```js
+// Node.js — không cần cài gì
+import { isDeepStrictEqual } from 'node:util';
+isDeepStrictEqual({ a: [1, { b: 2 }] }, { a: [1, { b: 2 }] });  // true
+```
+
+**⑦ So sánh mảng "không quan tâm thứ tự"**
+
+Nếu mảng mang ý nghĩa **tập hợp** (danh sách role, danh sách id...):
+
+```js
+// Cách 1: primitive, KHÔNG có phần tử trùng → dùng Set
+const setEqual = (a, b) =>
+  a.length === b.length && new Set(a).size === new Set([...a, ...b]).size;
+
+// Cách 2: primitive, CÓ phần tử trùng → đếm tần suất (O(n))
+function sameMultiset(a, b) {
+  if (a.length !== b.length) return false;
+  const count = new Map();
+  for (const v of a) count.set(v, (count.get(v) ?? 0) + 1);
+  for (const v of b) {
+    const c = count.get(v);
+    if (!c) return false;                                 // thiếu hoặc dư → khác
+    count.set(v, c - 1);
+  }
+  return true;
+}
+
+sameMultiset([1, 1, 2], [1, 2, 1]);   // true
+sameMultiset([1, 1, 2], [1, 2, 2]);   // false
+```
+
+> Cách `[...a].sort()` rồi so từng phần tử cũng được nhưng là **O(n log n)** và `sort()`
+> **mutate mảng gốc** nếu quên copy — nhớ `[...a].sort()` chứ đừng `a.sort()`.
+> Nếu phần tử là **object**, phải sort theo một khoá định danh (`id`) rồi `deepEqual` từng cặp.
+
+**⑧ Chọn cách nào trong thực tế?**
+
+| Tình huống | Cách nên dùng |
+|---|---|
+| Kiểm tra "có phải cùng 1 object không" | `===` (đúng mục đích) |
+| React `memo` / `useEffect` deps / Redux selector | **Shallow** — nhanh, và đây là lý do phải **immutable update** |
+| So 2 form data / 2 config để biết "có thay đổi không" | `deepEqual` / `_.isEqual` |
+| So 2 entity có `id` | So `a.id === b.id` — **rẻ nhất**, đừng deep compare |
+| So dữ liệu lớn, so nhiều lần | Tính **hash/version** (updatedAt, ETag, revision) rồi so hash |
+
+> **Lưu ý hiệu năng:** deep compare là **O(n)** theo tổng số node. Trong render loop của React/Vue,
+> deep compare mỗi lần render sẽ đắt hơn cả việc re-render — đó chính là lý do React chọn
+> **shallow compare + immutable data** thay vì deep compare.
+
+#### 🎯 Tóm tắt trả lời phỏng vấn
+
+- **`===` / `==` với object/array luôn so sánh REFERENCE, không so nội dung** → `{a:1} === {a:1}` là
+  `false`. `Object.is` cũng vậy (chỉ khác `===` ở `NaN` và `-0`).
+- **3 mức so sánh:** ① **reference** (`===`) — hỏi "có cùng 1 object không"; ② **shallow** — so số key
+  + từng giá trị 1 tầng bằng `Object.is`; ③ **deep** — đệ quy xuống mọi tầng.
+- **`JSON.stringify(a) === JSON.stringify(b)` nhanh nhưng nhiều bẫy:** phụ thuộc **thứ tự key**, mất
+  `undefined`/function, `NaN`→`null`, `Date`/`Map`/`Set` sai, **throw** với circular reference. Chỉ
+  dùng cho JSON thuần và nhỏ.
+- **Production:** dùng `_.isEqual` (lodash), `util.isDeepStrictEqual` (Node built-in) hoặc
+  `fast-deep-equal` thay vì tự viết — vì phải xử lý Date/RegExp/Map/Set/circular.
+- **Mảng:** cùng thứ tự → so `length` + `every((v,i) => ...)`. Không quan tâm thứ tự → dùng **Set**
+  (không trùng) hoặc **đếm tần suất bằng Map** O(n) (có trùng); tránh `a.sort()` vì **mutate** mảng gốc.
+- **Thực tế:** có `id` thì so `id`; React/Vue dùng **shallow compare + immutable update** chứ không
+  deep compare mỗi render vì deep compare là **O(n)** và đắt hơn cả re-render.
+
+[↑ Mục lục](#mục-lục)
+
+<a id="q5"></a>
+## 5. Truthy và Falsy trong JavaScript/TypeScript
 
 ### 📖 Giới thiệu kiến thức
 
@@ -1236,8 +1567,8 @@ ngữ cảnh boolean; còn `==` là **so sánh 2 giá trị** với bộ quy t�
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q5"></a>
-## 5. Phân biệt `for...in` và `for...of` trong JavaScript
+<a id="q6"></a>
+## 6. Phân biệt `for...in` và `for...of` trong JavaScript
 
 ### 📖 Giới thiệu kiến thức
 
@@ -1326,7 +1657,7 @@ for (const v of arr) console.log(v);    // "a","b","c"          → VALUE (đún
 
 > Ghi nhớ mẹo: **`for...in` = `in`dex/key** (duyệt key), **`for...of` = value `of` iterable** (duyệt
 > giá trị). Muốn vừa key vừa value của object → `Object.entries(obj)` kết hợp `for...of`. Khái niệm
-> object vs iterable liên hệ 2 nhóm kiểu dữ liệu ở [câu 3](#q3).
+> object vs iterable liên hệ 2 nhóm kiểu dữ liệu ở [câu 4](#q4).
 
 ### 🎯 Tóm tắt trả lời phỏng vấn
 
@@ -1343,13 +1674,13 @@ for (const v of arr) console.log(v);    // "a","b","c"          → VALUE (đún
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q6"></a>
-## 6. Map và Set trong JavaScript
+<a id="q7"></a>
+## 7. Map và Set trong JavaScript
 
 ### 📖 Giới thiệu kiến thức
 
 **Map** và **Set** là hai cấu trúc dữ liệu (collection) mới của **ES6**, bổ sung cho `Object` và
-`Array`. Cả hai đều **iterable** (duyệt được bằng `for...of` — xem [câu 5](#q5)), giữ **đúng thứ tự
+`Array`. Cả hai đều **iterable** (duyệt được bằng `for...of` — xem [câu 6](#q6)), giữ **đúng thứ tự
 thêm vào (insertion order)**, và có thuộc tính **`.size`**.
 
 **① `Set` — tập hợp các giá trị KHÔNG trùng lặp (unique):**
@@ -1411,7 +1742,7 @@ for (const [k, v] of m) console.log(k, v); // duyệt cặp key-value
 
 - **Key (WeakMap) / phần tử (WeakSet) BẮT BUỘC là object**, và được giữ **yếu (weak reference)**: nếu
   không còn tham chiếu nào khác tới object đó, nó **bị GC thu hồi tự động** (liên hệ Garbage Collection
-  ở [câu 8](#q8)) → tránh **memory leak**.
+  ở [câu 9](#q9)) → tránh **memory leak**.
 - **Không iterable**, **không `.size`**, không `clear()` — vì nội dung có thể biến mất bất cứ lúc nào.
 - Dùng để: gắn **metadata/cache riêng cho object** mà không cản trở việc giải phóng bộ nhớ.
 
@@ -1437,8 +1768,8 @@ user = null; // không còn tham chiếu → entry trong WeakMap tự bị GC th
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q7"></a>
-## 7. Phân biệt anonymous function và named function trong JavaScript
+<a id="q8"></a>
+## 8. Phân biệt anonymous function và named function trong JavaScript
 
 ### 📖 Giới thiệu kiến thức
 
@@ -1534,7 +1865,7 @@ setTimeout(function () { console.log("done"); }, 1000); // anonymous callback
 | **Hợp với** | Tái sử dụng, đệ quy, rõ ràng | Callback, IIFE, dùng một lần |
 
 > Liên hệ: chi tiết hoisting & function declaration vs expression nằm trong vòng đời thực thi
-> ([câu 8](#q8)); arrow function (luôn anonymous, không có `this` riêng) xem thêm ở [câu 2](#q2) (ES6).
+> ([câu 9](#q9)); arrow function (luôn anonymous, không có `this` riêng) xem thêm ở [câu 2](#q2) (ES6).
 
 ### 🎯 Tóm tắt trả lời phỏng vấn
 
@@ -1552,8 +1883,8 @@ setTimeout(function () { console.log("done"); }, 1000); // anonymous callback
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q7-1"></a>
-### 7.1. Phân biệt arrow function và regular function
+<a id="q8-1"></a>
+### 8.1. Phân biệt arrow function và regular function
 
 #### 📖 Giới thiệu kiến thức
 
@@ -1611,7 +1942,7 @@ const P = (n) => { this.name = n; };
 **④ Thuộc tính `prototype`:** regular function **có** `prototype` (phục vụ `new`); arrow **không có**.
 
 **⑤ Hoisting:** regular **declaration** được hoist đầy đủ (gọi trước được); arrow là **expression**
-gán vào biến → không hoist (theo `var`/`let`/`const` — xem [câu 7](#q7)).
+gán vào biến → không hoist (theo `var`/`let`/`const` — xem [câu 3](#q3)).
 
 **⑥ Generator:** regular function dùng được `function*` + `yield`; **arrow không thể** là generator.
 
@@ -1651,8 +1982,8 @@ sẽ không trỏ object/instance), **event handler** cần `this` = element DOM
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q8"></a>
-## 8. Vòng đời thực thi của JavaScript (JS lifecycle)
+<a id="q9"></a>
+## 9. Vòng đời thực thi của JavaScript (JS lifecycle)
 
 ### 📖 Giới thiệu kiến thức
 
@@ -1867,12 +2198,12 @@ Vì thứ tự thực thi là: **Code đồng bộ → Microtask → Macrotask**
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q8-1"></a>
-### 8.1. Các thành phần của cơ chế bất đồng bộ: Execution Context, Call Stack, Task Queue, Web APIs, Event Loop
+<a id="q9-1"></a>
+### 9.1. Các thành phần của cơ chế bất đồng bộ: Execution Context, Call Stack, Task Queue, Web APIs, Event Loop
 
 #### 📖 Giới thiệu kiến thức
 
-Đây là phần **đào sâu** cơ chế đã nêu ở [câu 8](#q8): để hiểu vì sao JS đơn luồng vẫn xử lý được bất
+Đây là phần **đào sâu** cơ chế đã nêu ở [câu 9](#q9): để hiểu vì sao JS đơn luồng vẫn xử lý được bất
 đồng bộ, cần nắm **5 mảnh ghép** sau và cách chúng phối hợp.
 
 **a. Execution Context (ngữ cảnh thực thi)**
@@ -1913,7 +2244,7 @@ Queue là cấu trúc **FIFO (First In First Out)** — vào trước ra trướ
   (vd `setTimeout`, sự kiện DOM, I/O). Khi Web API xử lý xong, callback được đẩy vào đây.
 - **Job queue (microtask queue):** hàng đợi **thứ hai**, dành cho callback của **Promise**
   (`.then/.catch/.finally`, `queueMicrotask`). **Độ ưu tiên cao hơn** task queue → job được chạy
-  trước callback thường (xem [câu 9.2](#q9-2) về Promise).
+  trước callback thường (xem [câu 10.2](#q10-2) về Promise).
 
 Event loop chỉ đẩy callback từ queue vào call stack **khi stack đã rỗng**, mỗi lần một callback.
 
@@ -1978,8 +2309,8 @@ timer) → đây là lý do trang web "sống" và phản hồi sự kiện liê
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q9"></a>
-## 9. Bất đồng bộ (asynchronous) trong JavaScript là gì?
+<a id="q10"></a>
+## 10. Bất đồng bộ (asynchronous) trong JavaScript là gì?
 
 ### 📖 Giới thiệu kiến thức
 
@@ -2002,7 +2333,7 @@ blocking. Tính bất đồng bộ **đến từ môi trường host**, không p
 Callback/Promise/async-await **không tạo ra** sự bất đồng bộ — chúng chỉ là **kỹ thuật để xử lý kết
 quả** của các tác vụ async (do host thực thi) một cách gọn gàng, không bị blocking.
 
-**Cơ chế chạy (nối với [câu 8](#q8) — event loop):**
+**Cơ chế chạy (nối với [câu 9](#q9) — event loop):**
 
 ```
                    ┌─────────────┐
@@ -2021,14 +2352,14 @@ quả** của các tác vụ async (do host thực thi) một cách gọn gàng,
 2. Host xử lý xong → đẩy callback vào **queue**: Promise → **microtask (job) queue**; `setTimeout`/I/O
    → **macrotask (task) queue**.
 3. **Event Loop:** khi **call stack rỗng**, lấy callback từ queue đẩy vào stack chạy. **Microtask ưu
-   tiên hơn macrotask** (xem chi tiết thứ tự ở [câu 8 mục 5](#q8) & [nodejs.md câu 2](./nodejs.md#q2)).
+   tiên hơn macrotask** (xem chi tiết thứ tự ở [câu 8 mục 5](#q9) & [nodejs.md câu 2](./nodejs.md#q2)).
 
 **Khi code JS quá nặng (CPU-bound) thì sao?** Async không giải quyết được vì JS vẫn đơn luồng → dùng
 **Web Worker** (trình duyệt) / **Worker Threads** (Node — xem [nodejs.md câu 3](./nodejs.md#q3)) để
 chạy trên thread riêng. (Nhược điểm: worker **không truy cập được DOM**, `window`, `document`.)
 
 **3 kỹ thuật xử lý bất đồng bộ** (tiến hóa theo thời gian, giải quyết nhược điểm của nhau):
-**Callback** ([8.1](#q9-1)) → **Promise** ([8.2](#q9-2)) → **async/await** ([8.4](#q9-4)).
+**Callback** ([8.1](#q10-1)) → **Promise** ([8.2](#q10-2)) → **async/await** ([8.4](#q10-4)).
 
 ### 🎯 Tóm tắt trả lời phỏng vấn
 
@@ -2046,8 +2377,8 @@ chạy trên thread riêng. (Nhược điểm: worker **không truy cập đư�
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q9-1"></a>
-### 9.1. Callback là gì? Callback hell?
+<a id="q10-1"></a>
+### 10.1. Callback là gì? Callback hell?
 
 #### 📖 Giới thiệu kiến thức
 
@@ -2087,7 +2418,7 @@ $.get("index.html", function () {
 });
 ```
 
-→ Để giải quyết callback hell, JS đưa ra **Promise** ([câu 9.2](#q9-2)).
+→ Để giải quyết callback hell, JS đưa ra **Promise** ([câu 10.2](#q10-2)).
 
 #### 🎯 Tóm tắt trả lời phỏng vấn
 
@@ -2099,8 +2430,8 @@ $.get("index.html", function () {
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q9-2"></a>
-### 9.2. Promise là gì? States, then/catch/finally, chaining
+<a id="q10-2"></a>
+### 10.2. Promise là gì? States, then/catch/finally, chaining
 
 #### 📖 Giới thiệu kiến thức
 
@@ -2171,7 +2502,7 @@ downloadFile("camly.mp3")
 - `Promise.race([...])`: lấy kết quả của promise **xong đầu tiên** (kể cả lỗi).
 - `Promise.any([...])`: lấy promise **thành công đầu tiên**.
 
-→ Khi nối **quá nhiều** `then()` vẫn dài dòng (*promise hell*) → dùng **async/await** ([câu 9.4](#q9-4)).
+→ Khi nối **quá nhiều** `then()` vẫn dài dòng (*promise hell*) → dùng **async/await** ([câu 10.4](#q10-4)).
 
 #### 🎯 Tóm tắt trả lời phỏng vấn
 
@@ -2186,8 +2517,8 @@ downloadFile("camly.mp3")
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q9-3"></a>
-### 9.3. Phân biệt Promise.all, Promise.race, Promise.allSettled và Promise.any
+<a id="q10-3"></a>
+### 10.3. Phân biệt Promise.all, Promise.race, Promise.allSettled và Promise.any
 
 #### 📖 Giới thiệu kiến thức
 
@@ -2260,8 +2591,8 @@ await Promise.any([fail("X", 10), fail("Y", 20)]);    // ❌ AggregateError
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q9-4"></a>
-### 9.4. async/await là gì?
+<a id="q10-4"></a>
+### 10.4. async/await là gì?
 
 #### 📖 Giới thiệu kiến thức
 
@@ -2331,26 +2662,26 @@ async function downloadAll() {
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q9-5"></a>
-### 9.5. Phân biệt callback, Promise và async/await
+<a id="q10-5"></a>
+### 10.5. Phân biệt callback, Promise và async/await
 
 #### 📖 Giới thiệu kiến thức
 
 Cả ba đều là **kỹ thuật xử lý kết quả của tác vụ bất đồng bộ** (không tự tạo ra async — xem
-[câu 9](#q9)). Chúng **tiến hóa nối tiếp nhau**, mỗi cái sinh ra để khắc phục nhược điểm của cái trước:
+[câu 10](#q10)). Chúng **tiến hóa nối tiếp nhau**, mỗi cái sinh ra để khắc phục nhược điểm của cái trước:
 **Callback → Promise → async/await**.
 
-**1. Callback** ([câu 9.1](#q9-1)) — truyền hàm vào hàm async để được gọi lại khi xong.
+**1. Callback** ([câu 10.1](#q10-1)) — truyền hàm vào hàm async để được gọi lại khi xong.
 - ✅ Đơn giản, có từ đầu, không cần cú pháp đặc biệt.
 - ❌ Nhiều tác vụ liên tiếp → **callback hell** (lồng sâu, khó đọc); **bắt lỗi rời rạc** (mỗi callback
   tự kiểm tra); khó kiểm soát luồng (chạy song song/tuần tự).
 
-**2. Promise** ([câu 9.2](#q9-2)) — object đại diện kết quả tương lai (pending → fulfilled/rejected).
+**2. Promise** ([câu 10.2](#q10-2)) — object đại diện kết quả tương lai (pending → fulfilled/rejected).
 - ✅ **Chaining `.then()`** phẳng, không lồng; **một `.catch()`** bắt lỗi cả chuỗi; có **`Promise.all/
   race/any/allSettled`** điều phối nhiều tác vụ; callback vào **microtask queue**.
 - ❌ Chuỗi `.then()` dài vẫn rườm rà (**promise hell**); luồng vẫn không "thẳng" như code đồng bộ.
 
-**3. async/await** ([câu 9.4](#q9-4)) — syntactic sugar **trên Promise**.
+**3. async/await** ([câu 10.4](#q10-4)) — syntactic sugar **trên Promise**.
 - ✅ Viết async **trông như đồng bộ** → dễ đọc nhất; bắt lỗi bằng **`try/catch/finally`** quen thuộc;
   debug/step qua dễ.
 - ❌ Vẫn là Promise bên dưới; `await` tuần tự dễ vô tình **chặn** tác vụ độc lập (phải nhớ dùng
@@ -2396,7 +2727,7 @@ async function run() {
 | **Nhược điểm** | Callback hell | Promise hell (chuỗi dài) | `await` dễ chặn tác vụ độc lập |
 
 > **Mấu chốt:** cả ba **không khác nhau về bản chất async** (đều dựa trên event loop & queue — xem
-> [câu 9.6](#q9-6)), chỉ khác về **cách viết & độ dễ đọc**. async/await không "mạnh hơn" Promise — nó
+> [câu 10.6](#q10-6)), chỉ khác về **cách viết & độ dễ đọc**. async/await không "mạnh hơn" Promise — nó
 > *là* Promise, chỉ gọn hơn. Thực tế thường **kết hợp:** `async/await` cho luồng chính + `Promise.all`
 > cho song song.
 
@@ -2408,13 +2739,13 @@ async function run() {
   `.catch()`, có `Promise.all/race/any`; nhược: **promise hell**. **async/await:** sugar trên Promise,
   **dễ đọc nhất** (như đồng bộ), bắt lỗi bằng **`try/catch`**.
 - **Quan trọng:** async/await **chính là Promise** (không mạnh hơn, chỉ gọn hơn); cả ba **cùng cơ chế
-  event loop/queue** ([câu 9.6](#q9-6)) — chỉ khác cú pháp & độ dễ đọc.
+  event loop/queue** ([câu 10.6](#q10-6)) — chỉ khác cú pháp & độ dễ đọc.
 - **Thực tế:** dùng **async/await** cho luồng chính + **`Promise.all`** cho tác vụ độc lập chạy song song.
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q9-6"></a>
-### 9.6. Phân biệt microtask và macrotask
+<a id="q10-6"></a>
+### 10.6. Phân biệt microtask và macrotask
 
 #### 📖 Giới thiệu kiến thức
 
@@ -2498,8 +2829,8 @@ timeout
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q9-7"></a>
-### 9.7. RxJS là gì?
+<a id="q10-7"></a>
+### 10.7. RxJS là gì?
 
 #### 📖 Giới thiệu kiến thức
 
@@ -2508,7 +2839,7 @@ dựa trên **luồng dữ liệu bất đồng bộ (async data streams)** — 
 **ReactiveX**. Ý tưởng cốt lõi: **coi mọi thứ là một "luồng" (stream)** — click, request HTTP, timer,
 thay đổi state... đều là **dãy giá trị phát ra theo thời gian**; ta **lắng nghe** và **biến đổi** luồng
 đó bằng các **operators** theo phong cách **functional**. Đây là **cách xử lý bất đồng bộ thứ tư**, bổ
-sung cho callback → Promise → async/await (xem [câu 9](#q9)).
+sung cho callback → Promise → async/await (xem [câu 10](#q10)).
 
 **① 3 mảnh ghép cơ bản — Observable, Observer, Subscription:**
 
@@ -2663,8 +2994,8 @@ HTTP) thì ít lo hơn.
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q10"></a>
-## 10. Proxy trong JavaScript là gì?
+<a id="q11"></a>
+## 11. Proxy trong JavaScript là gì?
 
 ### 📖 Giới thiệu kiến thức
 
@@ -2730,8 +3061,8 @@ lazy loading, default value, **reactivity** (Vue 3, MobX), giả lập API, bả
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q10-1"></a>
-### 10.1. Reflect dùng để làm gì? Vì sao đi cùng Proxy?
+<a id="q11-1"></a>
+### 11.1. Reflect dùng để làm gì? Vì sao đi cùng Proxy?
 
 #### 📖 Giới thiệu kiến thức
 
@@ -2771,8 +3102,8 @@ obj.x; // log "đọc x" rồi "đọc _x", trả về 1 — receiver đảm b�
 
 [↑ Mục lục](#mục-lục)
 
-<a id="q10-2"></a>
-### 10.2. Vue 3 dùng Proxy cho reactivity như thế nào?
+<a id="q11-2"></a>
+### 11.2. Vue 3 dùng Proxy cho reactivity như thế nào?
 
 #### 📖 Giới thiệu kiến thức
 

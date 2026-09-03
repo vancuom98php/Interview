@@ -35,7 +35,8 @@
   - [10.3. Race condition là gì?](#q10-3)
   - [10.4. SELECT FOR UPDATE là gì?](#q10-4)
   - [10.5. Optimistic Locking là gì?](#q10-5)
-- [11. Xoá dữ liệu có relationship (foreign key) trong MySQL](#q11)
+- [11. Constraint trong PostgreSQL là gì? Có những loại nào?](#q11)
+  - [11.1. Xoá dữ liệu có relationship (foreign key) trong MySQL](#q11-1)
 - [12. Index trong DB: các loại, cơ chế lưu, cách query/EXPLAIN/debug](#q12)
   - [12.1. Phân tích B-Tree/B+Tree index và Hash index (kèm ví dụ)](#q12-1)
   - [12.2. Cơ chế SELECT có index nhanh hơn không index thế nào?](#q12-2)
@@ -2489,9 +2490,263 @@ WHERE id = 1 AND version = 5;     -- version phải VẪN = 5 (chưa ai sửa)
 [↑ Mục lục](#mục-lục)
 
 <a id="q11"></a>
-## 11. Xoá dữ liệu có relationship (foreign key) trong MySQL
+## 11. Constraint trong PostgreSQL là gì? Có những loại nào?
 
 ### 📖 Giới thiệu kiến thức
+
+**Constraint (ràng buộc)** là **luật do chính database thực thi** trên dữ liệu của một bảng. Mỗi lần
+`INSERT`/`UPDATE`/`DELETE`, PostgreSQL kiểm tra luật đó; nếu vi phạm thì câu lệnh **thất bại và transaction bị
+rollback**. Đây là **lớp bảo vệ cuối cùng** cho **tính toàn vẹn dữ liệu (data integrity)**.
+
+**Vì sao cần constraint khi đã validate ở tầng application?**
+
+- Một DB thường có **nhiều đường ghi vào**: API, worker/queue, cronjob, script migration, DBA gõ tay. Validate
+  trong code chỉ chặn được **một** đường; constraint chặn **tất cả**.
+- Validate ở app **không atomic** dưới concurrency: 2 request cùng `SELECT` thấy email chưa tồn tại rồi cùng
+  `INSERT` → sinh **bản ghi trùng** (xem [race condition](#q10-3)). `UNIQUE` constraint chặn ở tầng cuối.
+- Constraint là **tài liệu sống** của schema và giúp **query planner** tối ưu tốt hơn (biết cột `NOT NULL`,
+  biết quan hệ khoá → chọn plan tốt hơn, loại bỏ join thừa).
+
+> Nguyên tắc thực dụng: **validate ở app để UX tốt** (báo lỗi thân thiện, sớm) — **constraint ở DB để dữ liệu
+> không bao giờ sai**. Hai thứ bổ sung nhau, không thay thế nhau.
+
+---
+
+**Sáu loại constraint của PostgreSQL**
+
+| Constraint | Đảm bảo điều gì | Tự tạo index? |
+|-----------|------------------|----------------|
+| `NOT NULL` | Cột không được để trống (`NULL`) | Không |
+| `UNIQUE` | Giá trị (hoặc tổ hợp cột) không trùng nhau | **Có** — B-Tree unique index |
+| `PRIMARY KEY` | = `UNIQUE` + `NOT NULL`, **mỗi bảng chỉ 1** | **Có** |
+| `FOREIGN KEY` | Giá trị phải tồn tại ở bảng cha (**referential integrity**) | **Không** — phải tự tạo |
+| `CHECK` | Biểu thức boolean phải đúng cho từng dòng | Không |
+| `EXCLUDE` | Không tồn tại 2 dòng "xung đột" theo toán tử tuỳ ý (vd **overlap** thời gian) | **Có** — GiST |
+
+> `DEFAULT` **không phải constraint** — nó chỉ điền giá trị khi cột không được truyền, không hề ngăn ai đó
+> `INSERT` một giá trị sai sau đó.
+
+**Ví dụ tổng hợp — khai báo đủ 6 loại:**
+
+```sql
+CREATE EXTENSION IF NOT EXISTS btree_gist;   -- cần khi EXCLUDE trộn cột "=" với range
+
+CREATE TABLE bookings (
+    id          bigserial PRIMARY KEY,                       -- PRIMARY KEY
+    room_id     int  NOT NULL                                -- NOT NULL
+                REFERENCES rooms(id) ON DELETE RESTRICT,     -- FOREIGN KEY (inline)
+    code        text NOT NULL UNIQUE,                        -- UNIQUE (column-level)
+    guests      int  NOT NULL DEFAULT 1,
+    price       numeric(10,2) NOT NULL,
+    period      tsrange NOT NULL,
+
+    -- CHECK: đặt tên tường minh để log lỗi dễ đọc
+    CONSTRAINT bookings_price_positive CHECK (price > 0),
+    CONSTRAINT bookings_guests_range   CHECK (guests BETWEEN 1 AND 10),
+
+    -- UNIQUE nhiều cột (table-level): cặp (room_id, code) là duy nhất
+    CONSTRAINT bookings_room_code_uniq UNIQUE (room_id, code),
+
+    -- EXCLUDE: cùng 1 phòng thì KHÔNG được có 2 booking chồng thời gian
+    CONSTRAINT bookings_no_overlap
+        EXCLUDE USING gist (room_id WITH =, period WITH &&)
+);
+```
+
+**Column-level vs table-level:** viết ngay sau tên cột là *column-level* (chỉ áp cho cột đó); viết thành dòng
+riêng dạng `CONSTRAINT <tên> ...` là *table-level* (bắt buộc khi ràng buộc **nhiều cột**). Nên luôn **đặt tên**
+constraint — tên tự sinh kiểu `bookings_price_check` khó map ra thông báo lỗi cho người dùng.
+
+---
+
+**Chi tiết từng loại & các bẫy hay gặp**
+
+**1. `NOT NULL`** — đơn giản nhưng quan trọng: `NULL` nghĩa là "không biết", làm hỏng so sánh (`col = NULL`
+luôn ra `NULL`) và làm `COUNT(col)` bỏ sót dòng. Mặc định cột **cho phép NULL**, nên phải khai báo tường minh.
+
+**2. `UNIQUE` và chuyện `NULL`** — bẫy kinh điển: theo chuẩn SQL, **`NULL` không bằng `NULL`**, nên `UNIQUE`
+**cho phép nhiều dòng cùng `NULL`**:
+
+```sql
+CREATE TABLE t (email text UNIQUE);
+INSERT INTO t VALUES (NULL), (NULL);   -- ✅ CHẠY ĐƯỢC, không báo lỗi!
+```
+
+Từ **PostgreSQL 15** có thể đổi hành vi này:
+
+```sql
+CREATE TABLE t (email text UNIQUE NULLS NOT DISTINCT);  -- PG 15+: chỉ cho phép DUY NHẤT 1 dòng NULL
+```
+
+**3. `PRIMARY KEY`** — mỗi bảng tối đa 1 PK; PostgreSQL tự tạo unique index và tự thêm `NOT NULL`. Chọn
+`bigserial`/`GENERATED AS IDENTITY` hay `UUID` là một đánh đổi riêng — xem [câu 12.9](#q12-9).
+
+**4. `FOREIGN KEY`** — kèm **referential action** `ON DELETE` / `ON UPDATE`
+(`RESTRICT`/`NO ACTION` mặc định, `CASCADE`, `SET NULL`, `SET DEFAULT`) — chi tiết ở [mục 11.1](#q11-1).
+Hai điểm về PostgreSQL hay bị hỏi:
+
+- **PostgreSQL KHÔNG tự tạo index cho cột FK** (khác MySQL/InnoDB — InnoDB tự tạo). Thiếu index này thì mỗi lần
+  xoá/sửa dòng **cha**, DB phải **seq scan bảng con** để kiểm tra → rất chậm trên bảng lớn. **Luôn tự tạo index
+  cho cột FK.**
+- FK **khoá dòng cha** khi insert dòng con (`FOR KEY SHARE`) → nhiều con cùng trỏ vào 1 cha có thể tranh chấp.
+
+```sql
+CREATE INDEX idx_bookings_room_id ON bookings(room_id);   -- BẮT BUỘC nếu hay xoá/sửa rooms
+```
+
+**5. `CHECK`** — biểu thức boolean, **chỉ được dùng dữ liệu của chính dòng đó** (không subquery, không truy vấn
+bảng khác — cần thế thì phải dùng trigger). Bẫy: biểu thức trả về **`NULL` được coi là PASS**, nên
+`CHECK (age > 0)` **không** chặn `age = NULL` — phải thêm `NOT NULL`.
+
+```sql
+ALTER TABLE users ADD CONSTRAINT users_email_format
+    CHECK (email ~* '^[^@\s]+@[^@\s]+\.[a-z]{2,}$');
+```
+
+**6. `EXCLUDE`** — **đặc sản PostgreSQL** (MySQL không có). Nó tổng quát hoá `UNIQUE`: thay vì "không được
+**bằng** nhau", nó nói "không được **xung đột** theo toán tử bạn chọn". Kết hợp `tsrange` với toán tử `&&`
+(overlap) là cách **chống double-booking ngay ở tầng DB**, không cần lock thủ công — thay cho
+`SELECT ... FOR UPDATE` ([mục 10.4](#q10-4)).
+
+---
+
+**`DEFERRABLE` — hoãn kiểm tra tới lúc `COMMIT`** (PostgreSQL có, MySQL không)
+
+Mặc định constraint được kiểm tra **ngay sau mỗi câu lệnh**. Điều đó gây kẹt khi dữ liệu tham chiếu vòng, hoặc
+khi cần hoán đổi hai giá trị unique:
+
+```sql
+-- Vấn đề: đổi chỗ vị trí 2 dòng, bước trung gian bị trùng
+UPDATE items SET position = 2 WHERE id = 1;   -- ❌ duplicate key: đã có dòng position = 2
+
+-- Cách xử lý: khai báo constraint hoãn được, rồi hoãn nó trong transaction
+ALTER TABLE items ADD CONSTRAINT items_position_uniq
+    UNIQUE (position) DEFERRABLE INITIALLY IMMEDIATE;
+
+BEGIN;
+  SET CONSTRAINTS items_position_uniq DEFERRED;   -- chỉ kiểm tra khi COMMIT
+  UPDATE items SET position = 2 WHERE id = 1;
+  UPDATE items SET position = 1 WHERE id = 2;
+COMMIT;                                            -- ✅ tới đây mới check, dữ liệu đã hợp lệ
+```
+
+`INITIALLY DEFERRED` = mặc định luôn hoãn. Lưu ý: `NOT NULL` và `CHECK` **không** deferrable.
+
+---
+
+**Thêm constraint trên bảng lớn mà không khoá bảng (`NOT VALID`)**
+
+`ALTER TABLE ... ADD CONSTRAINT` thông thường sẽ **quét toàn bộ bảng** và giữ lock — bảng vài chục triệu dòng
+sẽ downtime. PostgreSQL cho phép tách làm 2 bước:
+
+```sql
+-- Bước 1: áp dụng NGAY cho dữ liệu mới, KHÔNG quét dữ liệu cũ → gần như tức thì
+ALTER TABLE orders ADD CONSTRAINT orders_total_positive
+    CHECK (total >= 0) NOT VALID;
+
+-- Bước 2: dọn dữ liệu cũ vi phạm, rồi validate (chỉ lấy lock nhẹ SHARE UPDATE EXCLUSIVE)
+ALTER TABLE orders VALIDATE CONSTRAINT orders_total_positive;
+```
+
+Cách này áp dụng cho cả `CHECK` và `FOREIGN KEY`. Tương tự, muốn thêm `UNIQUE` không downtime thì
+`CREATE UNIQUE INDEX CONCURRENTLY ...` trước, rồi `ALTER TABLE ... ADD CONSTRAINT ... UNIQUE USING INDEX ...`.
+
+**Các lệnh quản lý constraint thường dùng:**
+
+```sql
+ALTER TABLE t ADD  CONSTRAINT ten_ct CHECK (...);
+ALTER TABLE t DROP CONSTRAINT ten_ct;
+ALTER TABLE t ALTER COLUMN col SET  NOT NULL;   -- NOT NULL không dùng ADD/DROP CONSTRAINT
+ALTER TABLE t ALTER COLUMN col DROP NOT NULL;
+\d+ ten_bang                                     -- xem constraint trong psql
+SELECT conname, pg_get_constraintdef(oid) FROM pg_constraint WHERE conrelid = 'bookings'::regclass;
+```
+
+---
+
+**`UNIQUE` constraint vs unique index — khác nhau chỗ nào?**
+
+Bản chất lưu trữ giống nhau (đều là B-Tree unique index), nhưng:
+
+| | `UNIQUE` constraint | `CREATE UNIQUE INDEX` |
+|---|---|---|
+| Có mặt trong `pg_constraint`, có tên constraint | ✅ | ❌ (chỉ là index) |
+| Làm đích cho `FOREIGN KEY` tham chiếu | ✅ | ✅ |
+| Dùng được với `ON CONFLICT` | ✅ | ✅ |
+| Hỗ trợ **partial** (`WHERE ...`) hoặc biểu thức | ❌ | ✅ |
+
+Nên **unique có điều kiện** chỉ làm được bằng index — rất hay dùng với soft delete:
+
+```sql
+-- Email chỉ cần unique trong số các user CHƯA bị xoá mềm
+CREATE UNIQUE INDEX users_email_active_uniq
+    ON users (lower(email)) WHERE deleted_at IS NULL;
+```
+
+---
+
+**Bắt lỗi constraint ở tầng application**
+
+PostgreSQL trả về **SQLSTATE** rõ ràng — nên bắt theo **mã lỗi + tên constraint**, đừng parse chuỗi message:
+
+| SQLSTATE | Ý nghĩa |
+|----------|---------|
+| `23502` | `not_null_violation` |
+| `23503` | `foreign_key_violation` |
+| `23505` | `unique_violation` |
+| `23514` | `check_violation` |
+| `23P01` | `exclusion_violation` |
+
+```js
+// Node.js + node-postgres: biến lỗi DB thành lỗi nghiệp vụ 409 thay vì 500
+try {
+  await db.query('INSERT INTO users(email) VALUES ($1)', [email]);
+} catch (e) {
+  if (e.code === '23505' && e.constraint === 'users_email_key') {
+    throw new ConflictException('Email đã được sử dụng');
+  }
+  throw e;
+}
+```
+
+Với `INSERT`, PostgreSQL còn có **upsert** để khỏi phải bắt lỗi: `INSERT ... ON CONFLICT (email) DO NOTHING`
+hoặc `DO UPDATE SET ...` (xem [mục 15.1](#q15-1)).
+
+---
+
+**So sánh nhanh PostgreSQL vs MySQL về constraint**
+
+| | PostgreSQL | MySQL 8.0 |
+|---|---|---|
+| `CHECK` | Có từ lâu, đầy đủ | Chỉ **thực thi từ 8.0.16** (trước đó bị **bỏ qua âm thầm**) |
+| `EXCLUDE` | ✅ | ❌ không có |
+| `DEFERRABLE` constraint | ✅ | ❌ (chỉ tắt được FK check bằng `FOREIGN_KEY_CHECKS`) |
+| Index cho cột FK | **Không** tự tạo | InnoDB **tự tạo** |
+| `UNIQUE` với nhiều `NULL` | Cho phép (PG 15+ có `NULLS NOT DISTINCT`) | Cho phép |
+| Thêm constraint không downtime | `NOT VALID` + `VALIDATE` | Online DDL / `pt-online-schema-change` |
+
+### 🎯 Tóm tắt trả lời phỏng vấn
+
+- **Constraint** = luật do **database tự thực thi** để đảm bảo **toàn vẹn dữ liệu**; vi phạm thì câu lệnh lỗi và
+  **transaction rollback**. Vẫn cần dù app đã validate, vì DB có **nhiều đường ghi vào** và validate ở app
+  **không atomic** dưới concurrency.
+- **6 loại của PostgreSQL:** `NOT NULL`, `UNIQUE`, `PRIMARY KEY` (= UNIQUE + NOT NULL), `FOREIGN KEY`, `CHECK`,
+  và `EXCLUDE` (đặc sản PG — chặn 2 dòng "xung đột" theo toán tử, vd **chống trùng khoảng thời gian** khi đặt
+  phòng). `DEFAULT` **không phải** constraint.
+- **Bẫy hay hỏi:** `UNIQUE` **cho phép nhiều `NULL`** (PG 15+ có `NULLS NOT DISTINCT`); `CHECK` trả `NULL` được
+  coi là **pass**; PostgreSQL **không tự tạo index cho cột FK** (khác InnoDB) → phải tự `CREATE INDEX`.
+- **Riêng PostgreSQL:** constraint có thể `DEFERRABLE` — hoãn kiểm tra tới `COMMIT` (hữu ích khi hoán đổi giá
+  trị unique hoặc tham chiếu vòng); thêm constraint trên bảng lớn thì dùng **`NOT VALID` rồi `VALIDATE`** để
+  không khoá bảng.
+- **Thực hành:** luôn **đặt tên constraint**; muốn unique có điều kiện (soft delete) thì dùng **partial unique
+  index**; ở app bắt lỗi theo **SQLSTATE** (`23505` unique, `23503` FK, `23514` check) để trả 409 thay vì 500.
+
+[↑ Mục lục](#mục-lục)
+
+<a id="q11-1"></a>
+### 11.1. Xoá dữ liệu có relationship (foreign key) trong MySQL
+
+#### 📖 Giới thiệu kiến thức
 
 Khi hai bảng có quan hệ qua **foreign key** (vd `users` 1–n `orders`, trong đó `orders.user_id` tham chiếu
 `users.id`), việc xoá một record **cha** đang có record **con** tham chiếu sẽ gây **lỗi ràng buộc** nếu không
@@ -2575,7 +2830,7 @@ SET FOREIGN_KEY_CHECKS = 1;               -- BẮT BUỘC bật lại
 > CASCADE`; hoặc định nghĩa relationship rồi bắt sự kiện `deleting` để xoá con; hoặc dùng **SoftDeletes**
 > (`$table->softDeletes()` + trait `SoftDeletes`) để xoá mềm. Nhưng bản chất vẫn dựa vào FK của MySQL ở tầng DB.
 
-### 🎯 Tóm tắt trả lời phỏng vấn
+#### 🎯 Tóm tắt trả lời phỏng vấn
 
 - Khi 2 bảng có **foreign key**, xoá record **cha** đang có **con** tham chiếu sẽ **báo lỗi** (toàn vẹn tham chiếu).
 - **3 cách xử lý:**
@@ -3916,7 +4171,7 @@ ON DUPLICATE KEY UPDATE
 REPLACE INTO users (email, name) VALUES ('a@x.com', 'An');
 ```
 > ⚠️ REPLACE = `DELETE` + `INSERT`: **mất các cột không truyền** (về default), **đổi giá trị `AUTO_INCREMENT id`**,
-> và **kích hoạt `ON DELETE CASCADE`** (câu 11) → có thể xóa lan dữ liệu con. Thường **`ON DUPLICATE KEY UPDATE`
+> và **kích hoạt `ON DELETE CASCADE`** (mục 11.1) → có thể xóa lan dữ liệu con. Thường **`ON DUPLICATE KEY UPDATE`
 > an toàn hơn**.
 
 | Cách | Khi gặp trùng | Dòng cũ |
@@ -4278,7 +4533,7 @@ với log để tìm nguyên nhân.
 `UPDATE ... WHERE id = ? AND updated_at = ?` (xem mục 10.5).
 
 **6. Soft delete (xóa mềm).** Cột **`deleted_at`**: `NULL` = còn sống, có giá trị = đã xóa (giữ dữ liệu, khôi
-phục được) — xem câu 11.
+phục được) — xem mục 11.1.
 
 **7. Cache & HTTP điều kiện.** `updated_at` dùng cho `Last-Modified`/`ETag` và **invalidation cache** khi dữ
 liệu đổi (liên hệ câu 16).
@@ -4316,7 +4571,7 @@ CREATE TABLE orders (
 - Timestamp (`created_at`/`updated_at`/`deleted_at`) lưu **thời điểm** sự kiện — gần như **mọi bảng nên có**.
 - **Vì sao:** **audit/truy vết**, **sắp xếp & lọc theo thời gian**, **debug (dựng timeline)**, **sync tăng dần**
   (`WHERE updated_at > last_sync`), **optimistic locking** (updated_at làm version — mục 10.5), **soft delete**
-  (`deleted_at` — câu 11), **cache/ETag** (câu 16), **time-series/partition** (câu 14), **business logic** (hết
+  (`deleted_at` — mục 11.1), **cache/ETag** (câu 16), **time-series/partition** (câu 14), **business logic** (hết
   hạn, SLA).
 - **Thực hành:** default `CURRENT_TIMESTAMP` + `ON UPDATE`, **lưu UTC**, **index** nếu hay query theo thời gian;
   Laravel tự quản.
