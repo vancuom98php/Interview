@@ -8,6 +8,7 @@
 1. [Proxy là gì?](#q1)
    - 1.1. [Forward Proxy vs Reverse Proxy khác nhau thế nào?](#q1-1)
    - 1.2. [Reverse Proxy vs Load Balancer vs API Gateway](#q1-2)
+   - 1.3. [Phân biệt 2 web server Apache và Nginx](#q1-3)
 2. [Phân biệt Scale ngang (Horizontal) và Scale dọc (Vertical)](#q2)
 3. [Docker là gì?](#q3)
    - 3.1. [Container khác Virtual Machine (VM) thế nào?](#q3-1)
@@ -157,6 +158,103 @@ Tóm lại: Reverse Proxy là *khái niệm gốc*; Load Balancer nhấn mạnh 
 - **Load Balancer**: reverse proxy chuyên **phân phối tải** + health check cho nhiều backend giống nhau (L4/L7).
 - **API Gateway**: reverse proxy L7 cho **microservice** — điểm vào duy nhất, lo auth, rate limit, routing, transform.
 - Một công cụ (Nginx, Envoy) có thể đảm nhận cả ba vai trò.
+
+[↑ Mục lục](#mục-lục)
+
+<a id="q1-3"></a>
+### 1.3. Phân biệt 2 web server Apache và Nginx
+
+#### 📖 Giới thiệu kiến thức
+
+**Web server** là phần mềm nhận HTTP request từ client, trả về static file (HTML, CSS, JS, ảnh)
+hoặc chuyển request cho ứng dụng (PHP, Node, Python...) xử lý. Hai web server phổ biến nhất là
+**Apache HTTP Server** (ra đời 1995) và **Nginx** (2004, sinh ra để giải bài toán **C10K** — phục vụ
+10.000 kết nối đồng thời).
+
+Khác biệt gốc rễ nằm ở **kiến trúc xử lý kết nối**:
+
+**1. Apache — process/thread-based (qua MPM – Multi-Processing Module)**
+
+- `prefork`: mỗi request 1 **process** riêng (không thread). An toàn cho thư viện không thread-safe
+  (như `mod_php` cũ) nhưng tốn RAM nhất.
+- `worker`: nhiều process, mỗi process nhiều **thread**; mỗi kết nối chiếm 1 thread.
+- `event` (mặc định từ Apache 2.4): giống worker nhưng có thread riêng giữ các kết nối
+  **keep-alive** rảnh → đỡ lãng phí thread, nhưng request đang xử lý vẫn chiếm 1 thread.
+
+→ Số kết nối đồng thời tỉ lệ với số process/thread → khi traffic cao, RAM và context switch tăng nhanh.
+
+**2. Nginx — event-driven, asynchronous, non-blocking**
+
+- 1 **master process** (đọc config, quản lý) + vài **worker process** (thường = số CPU core).
+- Mỗi worker chạy một **event loop** dùng `epoll` (Linux) / `kqueue` (BSD/macOS), một worker xử lý
+  **hàng nghìn kết nối** cùng lúc mà không tạo thread mới cho mỗi kết nối.
+
+→ RAM gần như ổn định khi số kết nối tăng; rất mạnh với **static file**, **reverse proxy**,
+**load balancing**, kết nối chậm/keep-alive nhiều.
+
+**Bảng so sánh:**
+
+| Tiêu chí | Apache | Nginx |
+|---|---|---|
+| Kiến trúc | Process/thread per connection (MPM prefork/worker/event) | Event-driven, async, non-blocking (master + workers) |
+| Kết nối đồng thời lớn | Tốn RAM/CPU hơn | Rất tốt, RAM ổn định |
+| Static content | Ổn | **Nhanh hơn** rõ rệt |
+| Dynamic content (PHP) | Xử lý **bên trong** qua `mod_php` hoặc chuyển ra PHP-FPM | **Không tự xử lý** — luôn chuyển qua **PHP-FPM (FastCGI)** / proxy_pass |
+| Cấu hình phân tán | Hỗ trợ **`.htaccess`** theo từng thư mục (không cần restart) | **Không có** `.htaccess`, config tập trung (nhanh hơn vì không phải đọc file mỗi request) |
+| Module | Load/unload động (`a2enmod`), hệ sinh thái rất lớn | Dynamic module từ 1.9.11 nhưng ít hơn; nhiều module phải biên dịch kèm |
+| URL rewrite | `mod_rewrite` (trong `.htaccess`) | `rewrite` / `try_files` trong block `location` |
+| Vai trò thường gặp | Shared hosting, app cũ, cần `.htaccess` | Reverse proxy, load balancer, SSL termination, serve static, API gateway đơn giản |
+
+**Tại sao `.htaccess` làm Apache chậm hơn?** Khi bật `AllowOverride`, với mỗi request Apache phải tìm
+và đọc `.htaccess` ở **mọi thư mục cha** trên đường dẫn → nhiều thao tác I/O. Tiện cho shared hosting
+(user không có quyền sửa config chính), nhưng tốn hiệu năng.
+
+**Kết hợp cả hai (mô hình phổ biến):** Nginx đứng trước làm **reverse proxy** — serve static,
+SSL termination, cân tải — rồi `proxy_pass` request động về Apache phía sau. Tận dụng tốc độ của
+Nginx và sự tương thích/`.htaccess` của Apache.
+
+**Ví dụ — Laravel chạy trên 2 server:**
+
+```apache
+# Apache: public/.htaccess (Laravel có sẵn) — rewrite mọi request về index.php
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [L]
+</IfModule>
+```
+
+```nginx
+# Nginx: không có .htaccess → khai báo trong server block, PHP chuyển cho PHP-FPM
+server {
+    listen 80;
+    root /var/www/app/public;
+    index index.php;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;  # tương đương RewriteRule ở trên
+    }
+
+    location ~ \.php$ {
+        fastcgi_pass php-fpm:9000;                        # Nginx không tự chạy PHP
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+}
+```
+
+> Liên hệ: Nginx làm reverse proxy/load balancer — xem [1. Proxy là gì?](#q1) và [1.2](#q1-2);
+> cấu hình Nginx trong Docker — xem [3.10](#q3-10).
+
+#### 🎯 Tóm tắt trả lời phỏng vấn
+
+- **Khác biệt cốt lõi là kiến trúc**: Apache xử lý theo **process/thread cho mỗi kết nối** (MPM prefork/worker/event);
+  Nginx theo mô hình **event-driven, non-blocking** — vài worker, mỗi worker xử lý hàng nghìn kết nối qua `epoll`.
+- Vì vậy **Nginx nhẹ RAM hơn, chịu tải đồng thời cao tốt hơn, serve static nhanh hơn**; Apache tốn tài nguyên hơn khi traffic lớn.
+- **PHP**: Apache chạy PHP ngay trong server bằng `mod_php`; Nginx **không tự chạy PHP**, phải chuyển qua **PHP-FPM** (FastCGI).
+- **Cấu hình**: Apache hỗ trợ **`.htaccess`** theo thư mục (linh hoạt, hợp shared hosting nhưng chậm hơn); Nginx config tập trung, không có `.htaccess`.
+- **Thực tế**: Nginx thường dùng làm **reverse proxy / load balancer / SSL termination**; có thể kết hợp Nginx phía trước + Apache phía sau.
 
 [↑ Mục lục](#mục-lục)
 
